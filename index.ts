@@ -2,6 +2,7 @@ import * as pulumi from '@pulumi/pulumi';
 
 import { configureVpc } from './src/vpc';
 import { configureRds } from './src/rds';
+import { configureS3Bucket } from './src/s3';
 import { configureAlbs } from './src/alb';
 import { configureIamRoles } from './src/iam';
 import { configureEmrCluster } from './src/emr';
@@ -16,8 +17,12 @@ const log = (level: 'info' | 'warning' | 'error', message: string) => {
 const env = pulumi.getStack();
 log('info', `Current pulumi environment building is ${env}`);
 
+// Create the S3 bucket for EMR to store necessary HDFS files
+const s3 = configureS3Bucket(env);
+log('info', `S3 bucket named ${s3.id} created successfully`);
+
 // Create necessary IAM roles for AWS resources
-const roles = configureIamRoles();
+const roles = configureIamRoles(env);
 log('info', `IAM roles are created: ${roles}`);
 
 // Create required VPC for the data-platform

@@ -70,26 +70,32 @@ const createVpc = (env: string): Vpc => {
   const cidrBlock = '10.1.0.0/16';
   const { numberOfAvailabilityZones = 1, numberOfNatGateways = 1 } = config.requireObject<IVpcConfig>('vpc');
 
+  const baseTags: Tags = {
+    'pulumi:Project': pulumiProject,
+    'pulumi:Stack': stack
+  };
+
   const tags: Tags = {
+    ...baseTags,
     Name: vpcName,
     availability_zones_used: numberOfAvailabilityZones.toString(),
     nat_gateways: numberOfNatGateways.toString(),
     cidr_block: cidrBlock,
-    crosswalk: 'yes',
-    'pulumi:Project': pulumiProject,
-    'pulumi:Stack': stack
+    crosswalk: 'yes'
   };
 
   const subnets: VpcSubnetArgs[] = [
     {
       type: 'public',
       name: `data-${env}-subnet-public`,
-      cidrMask: 24
+      cidrMask: 24,
+      tags: baseTags
     },
     {
       type: 'private',
       name: `data-${env}-subnet-private`,
-      cidrMask: 24
+      cidrMask: 24,
+      tags: baseTags
     }
   ];
 

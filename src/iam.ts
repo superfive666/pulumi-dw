@@ -16,9 +16,9 @@ const baseTags = {
   'pulumi:Stack': stack
 };
 
-export const configureIamRoles = (): IIamRoleSettings => {
+export const configureIamRoles = (env: string): IIamRoleSettings => {
   const alb = createAlbRole();
-  const emr = createEmrRole();
+  const emr = createEmrRole(env);
   const rds = createRdsRole();
   const tableau = createTableauRole();
 
@@ -41,13 +41,25 @@ const createAlbRole = (): Role => {
   return role;
 };
 
-const createEmrRole = (): Role => {
+const createEmrRole = (env: string): Role => {
+  const s3Bucket = `data-s3-${env}`;
   const roleName = 'EMR_DEFAULT_ROLE';
   const role = new Role(roleName, {
     assumeRolePolicy: JSON.stringify({
       Version: '2012-10-17',
       Statement: [
         // grant S3 bucket read / write access
+        {
+          Effect: 'Allow',
+          Action: ['s3:PutObject', 's3:GetObject', 's3:DeleteObject'],
+          Resource: [`arn:aws:s3:::${s3Bucket}/*`]
+        },
+        // grant S3 bucket list object
+        {
+          Effect: 'Allow',
+          Action: ['s3:ListBucket'],
+          Resource: [`arn:aws:s3:::${s3Bucket}`]
+        }
       ]
     }),
     tags: {
