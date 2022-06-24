@@ -1,0 +1,3 @@
+name: data-platform
+runtime: nodejs
+description: Data warehouse solution on AWS with dashboard in Tableau
