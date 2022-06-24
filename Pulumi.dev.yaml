@@ -1,2 +1,12 @@
 config:
-  aws:region: us-west-2
+  aws:
+    region: us-west-2
+
+  # VPC related configuration 
+  vpc:
+    numberOfAvailabilityZones: 1
+    numberOfNatGateways: 1
+
+  # EC2 (tableau) related configuration
+  ec2:
+    instanceType: m5.large

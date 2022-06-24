@@ -1,9 +1,9 @@
 import * as pulumi from "@pulumi/pulumi";
-import * as aws from "@pulumi/aws";
-import * as awsx from "@pulumi/awsx";
 
-// Create an AWS resource (S3 Bucket)
-const bucket = new aws.s3.Bucket("my-bucket");
+import { configureVpc } from "./src/vpc";
 
-// Export the name of the bucket
-export const bucketName = bucket.id;
+// GLOBAL config variables
+const env = pulumi.getStack();
+
+// Create required VPC for the data-platform
+configureVpc(env);
