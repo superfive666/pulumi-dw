@@ -57,6 +57,7 @@ const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
     "pulumi:Project": pulumiProject,
     "pulumi:Stack": stack,
   };
+  const egress;
 
   const alb = new aws.ec2.SecurityGroup(`${baseName}-${env}-alb`, {
     description: "Security group for ALB resource",
@@ -64,7 +65,7 @@ const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
     ingress: [],
     tags: {
       ...baseTags,
-      purpose: 'alb'
+      purpose: "alb",
     },
   });
   const alb2 = new aws.ec2.SecurityGroup(`${baseName}-${env}-alb2`, {
@@ -73,7 +74,7 @@ const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
     ingress: [],
     tags: {
       ...baseTags,
-      purpose: 'alb-internal'
+      purpose: "alb-internal",
     },
   });
   const emr = new aws.ec2.SecurityGroup(`${baseName}-${env}-emr`, {
@@ -82,7 +83,7 @@ const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
     ingress: [],
     tags: {
       ...baseTags,
-      purpose: 'emr'
+      purpose: "emr",
     },
   });
   const rds = new aws.ec2.SecurityGroup(`${baseName}-${env}-rds`, {
@@ -91,7 +92,7 @@ const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
     ingress: [],
     tags: {
       ...baseTags,
-      purpose: 'rds'
+      purpose: "rds",
     },
   });
   const tableau = new aws.ec2.SecurityGroup(`${baseName}-${env}-tableau`, {
@@ -101,7 +102,7 @@ const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
     ingress: [],
     tags: {
       ...baseTags,
-      purpose: 'tableau'
+      purpose: "tableau",
     },
   });
 
