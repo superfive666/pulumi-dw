@@ -1,10 +1,12 @@
-import * as aws from '@pulumi/aws';
-import * as awsx from '@pulumi/awsx';
 import * as pulumi from '@pulumi/pulumi';
 
+import { Tags } from '@pulumi/aws/tags';
+import { SecurityGroup } from '@pulumi/aws/ec2';
+import { Vpc, VpcSubnetArgs } from '@pulumi/awsx/ec2';
+
 interface IVpcDetails {
-  vpc: awsx.ec2.Vpc;
-  securityGroups: aws.ec2.SecurityGroup[];
+  vpc: Vpc;
+  securityGroups: SecurityGroup[];
 }
 
 interface IVpcConfig {
@@ -19,7 +21,7 @@ export const configureVpc = (env: string): IVpcDetails => {
   return { vpc, securityGroups };
 };
 
-const createVpc = (env: string): awsx.ec2.Vpc => {
+const createVpc = (env: string): Vpc => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
 
@@ -28,7 +30,7 @@ const createVpc = (env: string): awsx.ec2.Vpc => {
   const cidrBlock = '10.1.0.0/16';
   const { numberOfAvailabilityZones = 1, numberOfNatGateways = 1 } = config.requireObject<IVpcConfig>('vpc');
 
-  const tags = {
+  const tags: Tags = {
     Name: vpcName,
     availability_zones_used: numberOfAvailabilityZones.toString(),
     nat_gateways: numberOfNatGateways.toString(),
@@ -38,17 +40,20 @@ const createVpc = (env: string): awsx.ec2.Vpc => {
     'pulumi:Stack': stack
   };
 
-  const vpc = new awsx.ec2.Vpc(vpcName, {
-    cidrBlock,
+  const subnets: VpcSubnetArgs[] = [];
+
+  const vpc = new Vpc(vpcName, {
     numberOfAvailabilityZones,
+    cidrBlock,
     numberOfNatGateways,
+    subnets,
     tags
   });
 
   return vpc;
 };
 
-const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
+const createSecurityGroups = (env: string): SecurityGroup[] => {
   const baseName = 'data-platform-sg';
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
@@ -57,7 +62,7 @@ const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
     'pulumi:Stack': stack
   };
 
-  const alb = new aws.ec2.SecurityGroup(`${baseName}-${env}-alb`, {
+  const alb = new SecurityGroup(`${baseName}-${env}-alb`, {
     description: 'Security group for ALB resource',
     // allow 80 and 443
     ingress: [],
@@ -66,7 +71,7 @@ const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
       purpose: 'alb'
     }
   });
-  const alb2 = new aws.ec2.SecurityGroup(`${baseName}-${env}-alb2`, {
+  const alb2 = new SecurityGroup(`${baseName}-${env}-alb2`, {
     description: 'Security group for internal ALB resource',
     // allow all relevant ports
     ingress: [],
@@ -75,7 +80,7 @@ const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
       purpose: 'alb-internal'
     }
   });
-  const emr = new aws.ec2.SecurityGroup(`${baseName}-${env}-emr`, {
+  const emr = new SecurityGroup(`${baseName}-${env}-emr`, {
     description: 'Security group for EMR resource',
     // allow access from tableau and internal ALB
     ingress: [],
@@ -84,7 +89,7 @@ const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
       purpose: 'emr'
     }
   });
-  const rds = new aws.ec2.SecurityGroup(`${baseName}-${env}-rds`, {
+  const rds = new SecurityGroup(`${baseName}-${env}-rds`, {
     description: 'Security group for RDS resource',
     // only allow access from EMR (for storing metadata)
     ingress: [],
@@ -93,7 +98,7 @@ const createSecurityGroups = (env: string): aws.ec2.SecurityGroup[] => {
       purpose: 'rds'
     }
   });
-  const tableau = new aws.ec2.SecurityGroup(`${baseName}-${env}-tableau`, {
+  const tableau = new SecurityGroup(`${baseName}-${env}-tableau`, {
     description: 'Security group for EC2 instance that will be installed with Tableau app',
     // allow access from general ALB instance
     ingress: [],
