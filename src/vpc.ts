@@ -5,9 +5,17 @@ import { ec2 } from '@pulumi/aws/types/input';
 import { SecurityGroup } from '@pulumi/aws/ec2';
 import { Vpc, VpcSubnetArgs } from '@pulumi/awsx/ec2';
 
+interface IVpcSecurityGroupSettings {
+  alb: SecurityGroup;
+  alb2: SecurityGroup;
+  emr: SecurityGroup;
+  rds: SecurityGroup;
+  tableau: SecurityGroup;
+}
+
 interface IVpcDetails {
   vpc: Vpc;
-  securityGroups: SecurityGroup[];
+  securityGroups: IVpcSecurityGroupSettings;
 }
 
 interface IVpcConfig {
@@ -24,7 +32,7 @@ const ALLOW_ALL_HTTP: pulumi.Input<ec2.SecurityGroupIngress> = {
 };
 
 const ALLOW_ALL_HTTPS: pulumi.Input<ec2.SecurityGroupIngress> = {
-  description: 'Allow all http traffic from anywhere',
+  description: 'Allow all https traffic from anywhere',
   fromPort: 443,
   toPort: 443,
   protocol: 'tcp',
@@ -76,12 +84,12 @@ const createVpc = (env: string): Vpc => {
     {
       type: 'public',
       name: `data-${env}-subnet-public`,
-      cidrMask: 24,
+      cidrMask: 24
     },
     {
       type: 'private',
       name: `data-${env}-subnet-private`,
-      cidrMask: 24,
+      cidrMask: 24
     }
   ];
 
@@ -96,7 +104,7 @@ const createVpc = (env: string): Vpc => {
   return vpc;
 };
 
-const createSecurityGroups = (env: string): SecurityGroup[] => {
+const createSecurityGroups = (env: string): IVpcSecurityGroupSettings => {
   const baseName = 'data-platform-sg';
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
@@ -164,5 +172,5 @@ const createSecurityGroups = (env: string): SecurityGroup[] => {
     egress
   });
 
-  return [alb, alb2, emr, rds, tableau];
+  return { alb, alb2, emr, rds, tableau };
 };
