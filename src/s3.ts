@@ -1,10 +1,11 @@
 import * as pulumi from '@pulumi/pulumi';
 
+import { Tags } from '@pulumi/aws';
 import { Bucket } from '@pulumi/aws/s3';
 
 const pulumiProject = pulumi.getProject();
 const stack = pulumi.getStack();
-const baseTags = {
+const baseTags: Tags = {
   'pulumi:Project': pulumiProject,
   'pulumi:Stack': stack
 };

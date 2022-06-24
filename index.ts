@@ -8,7 +8,7 @@ import { configureIamRoles } from './src/iam';
 import { configureEmrCluster } from './src/emr';
 import { configureEc2Instance } from './src/ec2';
 
-const log = (level: 'info' | 'warning' | 'error', message: string) => {
+export const log = (level: 'info' | 'warning' | 'error', message: string) => {
   const formatted = `${new Date().toISOString()} [${level.toUpperCase()}]: ${message}`;
   console.log(formatted);
 };

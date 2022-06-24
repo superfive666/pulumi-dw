@@ -1,5 +1,6 @@
 import * as pulumi from '@pulumi/pulumi';
 
+import { Tags } from '@pulumi/aws';
 import { Role } from '@pulumi/aws/iam';
 
 interface IIamRoleSettings {
@@ -11,7 +12,7 @@ interface IIamRoleSettings {
 
 const pulumiProject = pulumi.getProject();
 const stack = pulumi.getStack();
-const baseTags = {
+const baseTags: Tags = {
   'pulumi:Project': pulumiProject,
   'pulumi:Stack': stack
 };
