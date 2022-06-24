@@ -34,6 +34,11 @@ export const configureAlbs = async ({
   const internal = await createInternalAlb(env, albInternalSecurityGroup, vpc);
   const external = await createExternalAlb(env, albSecurityGroup, vpc);
 
+  // 1. Create respective target group, `TargetGroup`
+  // 2. Create target group attachment for registering instances to the target groups, `TargetGroupAttachment`
+  // 3. Create listener for the load balancer, `Listener`
+  // 4. Create listener rules for the load balancer, `ListenerRule`
+
   return Promise.resolve({ internal, external });
 };
 
