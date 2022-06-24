@@ -39,6 +39,6 @@ const albs = configureAlbs(env);
 log("info", `All ALBs are created successfully`);
 
 const log = (level: "info" | "warning" | "error", message: string) => {
-  const formatted = `${new Date().toISOString()} [${level}]: ${message}`;
+  const formatted = `${new Date().toISOString()} [${level.toUpperCase()}]: ${message}`;
   console.log(formatted);
 };
