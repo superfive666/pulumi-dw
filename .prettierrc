@@ -1,0 +1,18 @@
+{
+  "jsxBracketSameLine": false,
+  "semi": true,
+  "printWidth": 120,
+  "parser": "typescript",
+  "singleQuote": true,
+  "arrowParens": "always",
+  "bracketSpacing": true,
+  "cursorOffset": -1,
+  "insertPragma": false,
+  "proseWrap": "preserve",
+  "rangeStart": 0,
+  "requirePragma": false,
+  "tabWidth": 2,
+  "useTabs": false,
+  "endOfLine": "lf",
+  "trailingComma": "none"
+}

@@ -1,1 +1,1 @@
-export const configuraIamRoles = () => {};
+export const configureIamRoles = () => {};
