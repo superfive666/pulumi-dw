@@ -30,6 +30,9 @@ export const configureRds = async (env: string, vpc: Vpc, iam: Role, sg: Securit
     clusterIdentifier,
     databaseName: clusterIdentifier,
     engine: 'aurora-postgresql',
+    // DB engine version can be explored via the following commands:
+    // aws rds describe-db-engine-versions --engine aurora-postgresql --query '*[].[EngineVersion]' --output text --region us-west-2
+    engineVersion: '13.6',
 
     iamRoles: [iam.arn],
     vpcSecurityGroupIds: [sg.id],
@@ -40,6 +43,7 @@ export const configureRds = async (env: string, vpc: Vpc, iam: Role, sg: Securit
     masterUsername: 'postgres',
     masterPassword: 'AppMpdwP@ssw0rd',
     port: 5432,
+    iamDatabaseAuthenticationEnabled: true,
 
     tags
   });

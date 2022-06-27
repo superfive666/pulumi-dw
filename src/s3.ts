@@ -6,7 +6,7 @@ import { Bucket } from '@pulumi/aws/s3';
 const pulumiProject = pulumi.getProject();
 const stack = pulumi.getStack();
 const baseTags: Tags = {
-  app: 'mpdw',
+  Project: 'mpdw',
   'pulumi:Project': pulumiProject,
   'pulumi:Stack': stack
 };
