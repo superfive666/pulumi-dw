@@ -43,7 +43,12 @@ const start = async (): Promise<void> => {
   log('info', `EMR cluster created successfully: ${emr}`);
 
   // Create relevant ALBs including respective target groups
-  const albs = await configureAlbs();
+  const albs = await configureAlbs({
+    env,
+    albSecurityGroup: securityGroups.alb,
+    albInternalSecurityGroup: securityGroups.alb2,
+    vpc
+  });
   log('info', `All ALBs are created successfully: ${albs}`);
 };
 

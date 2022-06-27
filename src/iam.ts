@@ -13,7 +13,7 @@ interface IIamRoleSettings {
 const pulumiProject = pulumi.getProject();
 const stack = pulumi.getStack();
 const baseTags: Tags = {
-  app: 'mpdw',
+  Project: 'mpdw',
   'pulumi:Project': pulumiProject,
   'pulumi:Stack': stack
 };

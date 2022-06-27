@@ -16,7 +16,7 @@ export const configureRds = async (env: string, vpc: Vpc, iam: Role, sg: Securit
   const tags: Tags = {
     'pulumi:Project': pulumiProject,
     'pulumi:Stack': stack,
-    app: 'mpdw',
+    Project: 'mpdw',
     purpose: 'emr'
   };
 

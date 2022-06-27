@@ -71,7 +71,7 @@ const createVpc = (env: string): Vpc => {
   const { numberOfAvailabilityZones = 1, numberOfNatGateways = 1 } = config.requireObject<IVpcConfig>('vpc');
 
   const baseTags: Tags = {
-    app: 'mpdw',
+    Project: 'mpdw',
     'pulumi:Project': pulumiProject,
     'pulumi:Stack': stack
   };
@@ -116,7 +116,7 @@ const createSecurityGroups = (env: string): IVpcSecurityGroupSettings => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
   const baseTags = {
-    app: 'mpdw',
+    Project: 'mpdw',
     'pulumi:Project': pulumiProject,
     'pulumi:Stack': stack
   };
