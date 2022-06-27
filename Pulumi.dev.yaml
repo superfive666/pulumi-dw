@@ -1,3 +1,8 @@
 config:
   aws:profile: bitdeer-dev
   aws:region: us-west-2
+
+  # vpc related configuration
+  data-platform:vpc:
+    numberOfAvailabilityZones: 2 
+    numberOfNatGateways: 1

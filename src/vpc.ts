@@ -2,6 +2,8 @@ import * as pulumi from '@pulumi/pulumi';
 import * as aws from '@pulumi/aws';
 import * as awsx from '@pulumi/awsx';
 
+import { log } from '../index';
+
 interface IVpcSecurityGroupSettings {
   alb: aws.ec2.SecurityGroup;
   alb2: aws.ec2.SecurityGroup;
@@ -61,11 +63,15 @@ export const configureVpc = (env: string): IVpcDetails => {
 const createVpc = (env: string): awsx.ec2.Vpc => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
-
   const config = new pulumi.Config();
+
   const vpcName = `app-mpdw-vpc-${env}`;
   const cidrBlock = '10.1.0.0/16';
-  const { numberOfAvailabilityZones = 1, numberOfNatGateways = 1 } = config.requireObject<IVpcConfig>('vpc');
+  log('info', `Creating project VPC named: ${vpcName} and CIDR block: ${cidrBlock}`);
+
+  const { numberOfAvailabilityZones, numberOfNatGateways } = config.requireObject<IVpcConfig>('vpc');
+  log('info', `{VPC} - number of availability zones: ${numberOfAvailabilityZones}`);
+  log('info', `{VPC} - number of NAT gateways: ${numberOfNatGateways}`);
 
   const baseTags: aws.Tags = {
     Project: 'mpdw',

@@ -52,28 +52,28 @@ const start = async (): Promise<void> => {
       log('info', `Security group for EC2 installing tableau created with ARN: ${tableau}`);
     });
 
-  // Create small RDS instance for EMR to store metadata information
-  const rds = await configureRds(env, vpc, roles.rds, securityGroups.rds);
-  rds.arn.apply((rdsArn) => log('info', `RDS for EMR metatdata created with ARN: ${rdsArn}`));
-
-  // Create EC2 instance for installation of Tableau
-  const tableau = configureEc2Instance(env);
-  tableau.arn.apply((ec2Arn) => log('info', `EC2 instance for installing tableau created with ARN: ${ec2Arn}`));
-
-  // Create EMR cluster
-  // const emr = configureEmrCluster(env);
-
-  // Create relevant ALBs including respective target groups
-  const albs = await configureAlbs({
-    env,
-    albSecurityGroup: securityGroups.alb,
-    albInternalSecurityGroup: securityGroups.alb2,
-    vpc
-  });
-  pulumi.all([albs.internal.arn, albs.external.arn]).apply(([internal, external]) => {
-    log('info', `Internal ALB (engineer) created with ARN: ${internal}`);
-    log('info', `External ALB (http/https) created with ARN: ${external}`);
-  });
+  // // Create small RDS instance for EMR to store metadata information
+  // const rds = await configureRds(env, vpc, roles.rds, securityGroups.rds);
+  // rds.arn.apply((rdsArn) => log('info', `RDS for EMR metatdata created with ARN: ${rdsArn}`));
+  //
+  // // Create EC2 instance for installation of Tableau
+  // const tableau = configureEc2Instance(env);
+  // tableau.arn.apply((ec2Arn) => log('info', `EC2 instance for installing tableau created with ARN: ${ec2Arn}`));
+  //
+  // // Create EMR cluster
+  // // const emr = configureEmrCluster(env);
+  //
+  // // Create relevant ALBs including respective target groups
+  // const albs = await configureAlbs({
+  //   env,
+  //   albSecurityGroup: securityGroups.alb,
+  //   albInternalSecurityGroup: securityGroups.alb2,
+  //   vpc
+  // });
+  // pulumi.all([albs.internal.arn, albs.external.arn]).apply(([internal, external]) => {
+  //   log('info', `Internal ALB (engineer) created with ARN: ${internal}`);
+  //   log('info', `External ALB (http/https) created with ARN: ${external}`);
+  // });
 };
 
 start();
