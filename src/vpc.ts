@@ -55,7 +55,7 @@ const egress: pulumi.Input<aws.types.input.ec2.SecurityGroupEgress>[] = [
 
 export const configureVpc = (env: string): IVpcDetails => {
   const vpc = createVpc(env);
-  const securityGroups = createSecurityGroups(env);
+  const securityGroups = createSecurityGroups(env, vpc);
 
   return { vpc, securityGroups };
 };
@@ -114,7 +114,7 @@ const createVpc = (env: string): awsx.ec2.Vpc => {
   return vpc;
 };
 
-const createSecurityGroups = (env: string): IVpcSecurityGroupSettings => {
+const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroupSettings => {
   const baseName = 'app-mpdw-sg';
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
@@ -124,64 +124,95 @@ const createSecurityGroups = (env: string): IVpcSecurityGroupSettings => {
     'pulumi:Stack': stack
   };
 
-  const alb = new aws.ec2.SecurityGroup(`${baseName}-${env}-alb`, {
-    description: 'Security group for ALB resource',
-    // allow 80 and 443
-    ingress: [ALLOW_ALL_HTTP, ALLOW_ALL_HTTPS],
-    tags: {
-      ...baseTags,
-      purpose: 'alb'
+  const alb = new aws.ec2.SecurityGroup(
+    `${baseName}-${env}-alb`,
+    {
+      vpcId: vpc.id,
+      description: 'Security group for ALB resource',
+      // allow 80 and 443
+      ingress: [ALLOW_ALL_HTTP, ALLOW_ALL_HTTPS],
+      tags: {
+        ...baseTags,
+        purpose: 'alb'
+      },
+      egress
     },
-    egress
-  });
-  const alb2 = new aws.ec2.SecurityGroup(`${baseName}-${env}-alb2`, {
-    description: 'Security group for internal ALB resource',
-    // allow all relevant ports
-    ingress: [],
-    tags: {
-      ...baseTags,
-      purpose: 'alb-internal'
+    { dependsOn: [vpc] }
+  );
+
+  const alb2 = new aws.ec2.SecurityGroup(
+    `${baseName}-${env}-alb2`,
+    {
+      vpcId: vpc.id,
+      description: 'Security group for internal ALB resource',
+      // allow all relevant ports
+      ingress: [],
+      tags: {
+        ...baseTags,
+        purpose: 'alb-internal'
+      },
+      egress
     },
-    egress
-  });
-  const emr = new aws.ec2.SecurityGroup(`${baseName}-${env}-emr`, {
-    description: 'Security group for EMR resource',
-    // allow access from tableau and internal ALB
-    ingress: [],
-    tags: {
-      ...baseTags,
-      purpose: 'emr'
+    { dependsOn: [vpc] }
+  );
+
+  const emr = new aws.ec2.SecurityGroup(
+    `${baseName}-${env}-emr`,
+    {
+      vpcId: vpc.id,
+      description: 'Security group for EMR resource',
+      // allow access from tableau and internal ALB
+      ingress: [],
+      tags: {
+        ...baseTags,
+        purpose: 'emr'
+      },
+      egress
     },
-    egress
-  });
-  const rds = new aws.ec2.SecurityGroup(`${baseName}-${env}-rds`, {
-    description: 'Security group for RDS resource',
-    // only allow access from EMR (for storing metadata)
-    ingress: [
-      {
-        description: 'EMR access right',
-        protocol: 'tcp',
-        fromPort: 5432,
-        toPort: 5432,
-        securityGroups: [`${baseName}-${env}-emr`]
-      }
-    ],
-    tags: {
-      ...baseTags,
-      purpose: 'rds'
+    { dependsOn: [vpc] }
+  );
+
+  const rds = new aws.ec2.SecurityGroup(
+    `${baseName}-${env}-rds`,
+    {
+      vpcId: vpc.id,
+      description: 'Security group for RDS resource',
+      // only allow access from EMR (for storing metadata)
+      ingress: [
+        {
+          description: 'EMR access right',
+          protocol: 'tcp',
+          fromPort: 5432,
+          toPort: 5432,
+          securityGroups: [emr.id]
+        }
+      ],
+      tags: {
+        ...baseTags,
+        purpose: 'rds'
+      },
+      egress
     },
-    egress
-  });
-  const tableau = new aws.ec2.SecurityGroup(`${baseName}-${env}-tableau`, {
-    description: 'Security group for EC2 instance that will be installed with Tableau app',
-    // allow access from general ALB instance
-    ingress: [],
-    tags: {
-      ...baseTags,
-      purpose: 'tableau'
+    {
+      dependsOn: [emr, vpc]
+    }
+  );
+
+  const tableau = new aws.ec2.SecurityGroup(
+    `${baseName}-${env}-tableau`,
+    {
+      vpcId: vpc.id,
+      description: 'Security group for EC2 instance that will be installed with Tableau app',
+      // allow access from general ALB instance
+      ingress: [],
+      tags: {
+        ...baseTags,
+        purpose: 'tableau'
+      },
+      egress
     },
-    egress
-  });
+    { dependsOn: [vpc] }
+  );
 
   return { alb, alb2, emr, rds, tableau };
 };

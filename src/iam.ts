@@ -2,9 +2,7 @@ import * as pulumi from '@pulumi/pulumi';
 import * as aws from '@pulumi/aws';
 
 interface IIamRoleSettings {
-  alb: aws.iam.Role;
   emr: aws.iam.Role;
-  rds: aws.iam.Role;
   tableau: aws.iam.Role;
 }
 
@@ -16,106 +14,138 @@ const baseTags: aws.Tags = {
   'pulumi:Stack': stack
 };
 
-export const configureIamRoles = (env: string): IIamRoleSettings => {
-  const alb = createAlbRole();
-  const emr = createEmrRole(env);
-  const rds = createRdsRole();
-  const tableau = createTableauRole();
+export const configureIamRoles = (s3: aws.s3.Bucket): IIamRoleSettings => {
+  const emr = createEmrRole(s3);
+  const tableau = createTableauRole(s3);
 
-  return { alb, emr, rds, tableau };
+  return { emr, tableau };
 };
 
-const createAlbRole = (): aws.iam.Role => {
-  const roleName = 'APP_MPDW_ALB_ROLE';
-  const role = new aws.iam.Role(roleName, {
-    assumeRolePolicy: JSON.stringify({
-      Version: '2012-10-17',
-      Statement: []
-    }),
-    tags: {
-      ...baseTags,
-      purpose: 'alb'
+const instanceAssumePolicy = aws.iam.getPolicyDocument({
+  statements: [
+    {
+      actions: ['sts:AssumeRole'],
+      principals: [
+        {
+          type: 'Service',
+          identifiers: ['ec2.amazonaws.com']
+        }
+      ]
     }
-  });
+  ]
+});
 
-  return role;
-};
-
-const createEmrRole = (env: string): aws.iam.Role => {
-  const s3Bucket = `app-mpdw-s3-${env}`;
+const createEmrRole = (s3: aws.s3.Bucket): aws.iam.Role => {
   const roleName = 'APP_MPDW_EMR_ROLE';
-  const role = new aws.iam.Role(roleName, {
-    assumeRolePolicy: JSON.stringify({
-      Version: '2012-10-17',
-      Statement: [
-        // grant S3 bucket read / write access
+  const role = new aws.iam.Role(
+    roleName,
+    {
+      assumeRolePolicy: instanceAssumePolicy.then((policy) => policy.json),
+      inlinePolicies: [
         {
-          Effect: 'Allow',
-          Action: ['s3:PutObject', 's3:GetObject', 's3:DeleteObject'],
-          Resource: [`arn:aws:s3:::${s3Bucket}/*`]
+          name: 'allow-s3-edit',
+          policy: JSON.stringify({
+            Version: '2012-10-17',
+            Statement: [
+              {
+                Effect: 'Allow',
+                Action: ['s3:PutObject', 's3:DeleteObject'],
+                Resource: [s3.arn.apply((v) => v.toString())]
+              }
+            ]
+          })
         },
-        // grant S3 bucket list object
         {
-          Effect: 'Allow',
-          Action: ['s3:ListBucket'],
-          Resource: [`arn:aws:s3:::${s3Bucket}`]
+          name: 'allow-s3-read',
+          policy: JSON.stringify({
+            Version: '2012-10-17',
+            Statement: [
+              {
+                Effect: 'Allow',
+                Action: ['s3:ListBucket', 's3:GetObject'],
+                Resource: [s3.arn.apply((v) => v.toString())]
+              }
+            ]
+          })
         },
         // grant required IAM permissions as documented on: https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-instance-fleet.html#emr-fleet-spot-options
         {
-          Effect: 'Allow',
-          Action: [
-            'ec2:DeleteLaunchTemplate',
-            'ec2:CreateLaunchTemplate',
-            'ec2:DescribeLaunchTemplates',
-            'ec2:CreateLaunchTemplateVersion',
-            'ec2:CreateFleet',
-            // to use targeted capacity reservations, you must include the following additional permissions
-            'ec2:DescribeCapacityReservations',
-            'ec2:DescribeLaunchTemplateVersions',
-            'ec2:DeleteLaunchTemplateVersions',
-            'resource-groups:ListGroupResources'
-          ],
-          Resource: '*'
+          name: 'allow-emr-ec2',
+          policy: JSON.stringify({
+            Version: '2012-10-17',
+            Statement: [
+              {
+                Effect: 'Allow',
+                Action: [
+                  'ec2:DeleteLaunchTemplate',
+                  'ec2:CreateLaunchTemplate',
+                  'ec2:DescribeLaunchTemplates',
+                  'ec2:CreateLaunchTemplateVersion',
+                  'ec2:CreateFleet',
+                  // to use targeted capacity reservations, you must include the following additional permissions
+                  'ec2:DescribeCapacityReservations',
+                  'ec2:DescribeLaunchTemplateVersions',
+                  'ec2:DeleteLaunchTemplateVersions',
+                  'resource-groups:ListGroupResources'
+                ],
+                Resource: '*'
+              }
+            ]
+          })
         }
-      ]
-    }),
-    tags: {
-      ...baseTags,
-      purpose: 'emr'
-    }
-  });
+      ],
+      tags: {
+        ...baseTags,
+        purpose: 'emr'
+      }
+    },
+    { dependsOn: [s3] }
+  );
 
   return role;
 };
 
-const createRdsRole = (): aws.iam.Role => {
-  const roleName = 'APP_MPDW_RDS_ROLE';
-  const role = new aws.iam.Role(roleName, {
-    assumeRolePolicy: JSON.stringify({
-      Version: '2012-10-17',
-      Statement: []
-    }),
-    tags: {
-      ...baseTags,
-      purpose: 'rds'
-    }
-  });
-
-  return role;
-};
-
-const createTableauRole = (): aws.iam.Role => {
+const createTableauRole = (s3: aws.s3.Bucket): aws.iam.Role => {
   const roleName = 'APP_MPDW_TABLEAU_ROLE';
-  const role = new aws.iam.Role(roleName, {
-    assumeRolePolicy: JSON.stringify({
-      Version: '2012-10-17',
-      Statement: []
-    }),
-    tags: {
-      ...baseTags,
-      purpose: 'tableau'
-    }
-  });
+  const role = new aws.iam.Role(
+    roleName,
+    {
+      assumeRolePolicy: instanceAssumePolicy.then((policy) => policy.json),
+      inlinePolicies: [
+        {
+          name: 'allow-s3-edit',
+          policy: JSON.stringify({
+            Version: '2012-10-17',
+            Statement: [
+              {
+                Effect: 'Allow',
+                Action: ['s3:PutObject', 's3:DeleteObject'],
+                Resource: [s3.arn.apply((v) => v.toString())]
+              }
+            ]
+          })
+        },
+        {
+          name: 'allow-s3-read',
+          policy: JSON.stringify({
+            Version: '2012-10-17',
+            Statement: [
+              {
+                Effect: 'Allow',
+                Action: ['s3:ListBucket', 's3:GetObject'],
+                Resource: [s3.arn.apply((v) => v.toString())]
+              }
+            ]
+          })
+        }
+      ],
+      tags: {
+        ...baseTags,
+        purpose: 'tableau'
+      }
+    },
+    { dependsOn: [s3] }
+  );
 
   return role;
 };

@@ -21,14 +21,14 @@ const start = async (): Promise<void> => {
 
   // Create the S3 bucket for EMR to store necessary HDFS files
   const s3 = configureS3Bucket(env);
-  s3.id.apply((s3BucketId) => log('info', `S3 bucket ID ${s3BucketId} created successfully`));
+  s3.id.apply((s3BucketId) => {
+    log('info', `S3 bucket ID ${s3BucketId} created successfully`);
+  });
 
   // Create necessary IAM roles for AWS resources
-  const roles = configureIamRoles(env);
-  pulumi.all([roles.alb.arn, roles.emr.arn, roles.rds.arn, roles.tableau.arn]).apply(([alb, emr, rds, tableua]) => {
-    log('info', `IAM role for ALB created with ARN: ${alb}`);
+  const roles = configureIamRoles(s3);
+  pulumi.all([roles.emr.arn, roles.tableau.arn]).apply(([emr, tableua]) => {
     log('info', `IAM role for EMR created with ARN: ${emr}`);
-    log('info', `IAM role for RDS created with ARN: ${rds}`);
     log('info', `IAM role Tableau ALB created with ARN: ${tableua}`);
   });
 

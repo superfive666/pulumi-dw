@@ -6,3 +6,11 @@ config:
   data-platform:vpc:
     numberOfAvailabilityZones: 2 
     numberOfNatGateways: 1
+
+  # ec2 related configuration 
+  data-platform:ec2:
+    instanceType: r6i.2xlarge
+
+  # emr related configuration
+  data-platform:emr:
+    instanceGroups: 
