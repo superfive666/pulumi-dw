@@ -1,19 +1,20 @@
 import * as pulumi from '@pulumi/pulumi';
-
-import { Tags } from '@pulumi/aws';
-import { Role } from '@pulumi/aws/iam';
-import { Vpc } from '@pulumi/awsx/ec2';
-import { Cluster } from '@pulumi/aws/rds';
-import { SecurityGroup } from '@pulumi/aws/ec2';
+import * as aws from '@pulumi/aws';
+import * as awsx from '@pulumi/awsx';
 
 interface IRdsConfig {
   instanceType: string;
 }
 
-export const configureRds = async (env: string, vpc: Vpc, iam: Role, sg: SecurityGroup): Promise<Cluster> => {
+export const configureRds = async (
+  env: string,
+  vpc: awsx.ec2.Vpc,
+  iam: aws.iam.Role,
+  sg: aws.ec2.SecurityGroup
+): Promise<aws.rds.Cluster> => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
-  const tags: Tags = {
+  const tags: aws.Tags = {
     'pulumi:Project': pulumiProject,
     'pulumi:Stack': stack,
     Project: 'mpdw',
@@ -26,7 +27,7 @@ export const configureRds = async (env: string, vpc: Vpc, iam: Role, sg: Securit
   const clusterIdentifier = `app-mpdw-rds-${env}`;
   const dbSubnetGroupName = (await vpc.getSubnetsIds('private'))?.[0];
 
-  const rds = new Cluster('postgresql', {
+  const rds = new aws.rds.Cluster('postgresql', {
     clusterIdentifier,
     databaseName: clusterIdentifier,
     engine: 'aurora-postgresql',

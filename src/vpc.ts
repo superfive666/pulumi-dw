@@ -1,20 +1,17 @@
 import * as pulumi from '@pulumi/pulumi';
-
-import { Tags } from '@pulumi/aws/tags';
-import { ec2 } from '@pulumi/aws/types/input';
-import { SecurityGroup } from '@pulumi/aws/ec2';
-import { Vpc, VpcSubnetArgs } from '@pulumi/awsx/ec2';
+import * as aws from '@pulumi/aws';
+import * as awsx from '@pulumi/awsx';
 
 interface IVpcSecurityGroupSettings {
-  alb: SecurityGroup;
-  alb2: SecurityGroup;
-  emr: SecurityGroup;
-  rds: SecurityGroup;
-  tableau: SecurityGroup;
+  alb: aws.ec2.SecurityGroup;
+  alb2: aws.ec2.SecurityGroup;
+  emr: aws.ec2.SecurityGroup;
+  rds: aws.ec2.SecurityGroup;
+  tableau: aws.ec2.SecurityGroup;
 }
 
 interface IVpcDetails {
-  vpc: Vpc;
+  vpc: awsx.ec2.Vpc;
   securityGroups: IVpcSecurityGroupSettings;
 }
 
@@ -23,7 +20,7 @@ interface IVpcConfig {
   numberOfNatGateways: number;
 }
 
-const ALLOW_ALL_HTTP: pulumi.Input<ec2.SecurityGroupIngress> = {
+const ALLOW_ALL_HTTP: pulumi.Input<aws.types.input.ec2.SecurityGroupIngress> = {
   description: 'Allow all http traffic from anywhere',
   fromPort: 80,
   toPort: 80,
@@ -31,7 +28,7 @@ const ALLOW_ALL_HTTP: pulumi.Input<ec2.SecurityGroupIngress> = {
   cidrBlocks: ['0.0.0.0/0']
 };
 
-const ALLOW_ALL_HTTPS: pulumi.Input<ec2.SecurityGroupIngress> = {
+const ALLOW_ALL_HTTPS: pulumi.Input<aws.types.input.ec2.SecurityGroupIngress> = {
   description: 'Allow all https traffic from anywhere',
   fromPort: 443,
   toPort: 443,
@@ -44,7 +41,7 @@ const ALLOW_ALL_HTTPS: pulumi.Input<ec2.SecurityGroupIngress> = {
  * this rule allow all internal resources to be able to access the internet;
  * modify this rule if it is required to be controlled otherwise
  */
-const egress: pulumi.Input<ec2.SecurityGroupEgress>[] = [
+const egress: pulumi.Input<aws.types.input.ec2.SecurityGroupEgress>[] = [
   {
     description: 'Allow all outgoing traffic',
     fromPort: 0,
@@ -61,7 +58,7 @@ export const configureVpc = (env: string): IVpcDetails => {
   return { vpc, securityGroups };
 };
 
-const createVpc = (env: string): Vpc => {
+const createVpc = (env: string): awsx.ec2.Vpc => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
 
@@ -70,13 +67,13 @@ const createVpc = (env: string): Vpc => {
   const cidrBlock = '10.1.0.0/16';
   const { numberOfAvailabilityZones = 1, numberOfNatGateways = 1 } = config.requireObject<IVpcConfig>('vpc');
 
-  const baseTags: Tags = {
+  const baseTags: aws.Tags = {
     Project: 'mpdw',
     'pulumi:Project': pulumiProject,
     'pulumi:Stack': stack
   };
 
-  const tags: Tags = {
+  const tags: aws.Tags = {
     ...baseTags,
     Name: vpcName,
     availability_zones_used: numberOfAvailabilityZones.toString(),
@@ -85,7 +82,7 @@ const createVpc = (env: string): Vpc => {
     crosswalk: 'yes'
   };
 
-  const subnets: VpcSubnetArgs[] = [
+  const subnets: awsx.ec2.VpcSubnetArgs[] = [
     {
       type: 'public',
       name: `app-mpdw-subnet-${env}-public`,
@@ -100,7 +97,7 @@ const createVpc = (env: string): Vpc => {
     }
   ];
 
-  const vpc = new Vpc(vpcName, {
+  const vpc = new awsx.ec2.Vpc(vpcName, {
     numberOfAvailabilityZones,
     cidrBlock,
     numberOfNatGateways,
@@ -121,7 +118,7 @@ const createSecurityGroups = (env: string): IVpcSecurityGroupSettings => {
     'pulumi:Stack': stack
   };
 
-  const alb = new SecurityGroup(`${baseName}-${env}-alb`, {
+  const alb = new aws.ec2.SecurityGroup(`${baseName}-${env}-alb`, {
     description: 'Security group for ALB resource',
     // allow 80 and 443
     ingress: [ALLOW_ALL_HTTP, ALLOW_ALL_HTTPS],
@@ -131,7 +128,7 @@ const createSecurityGroups = (env: string): IVpcSecurityGroupSettings => {
     },
     egress
   });
-  const alb2 = new SecurityGroup(`${baseName}-${env}-alb2`, {
+  const alb2 = new aws.ec2.SecurityGroup(`${baseName}-${env}-alb2`, {
     description: 'Security group for internal ALB resource',
     // allow all relevant ports
     ingress: [],
@@ -141,7 +138,7 @@ const createSecurityGroups = (env: string): IVpcSecurityGroupSettings => {
     },
     egress
   });
-  const emr = new SecurityGroup(`${baseName}-${env}-emr`, {
+  const emr = new aws.ec2.SecurityGroup(`${baseName}-${env}-emr`, {
     description: 'Security group for EMR resource',
     // allow access from tableau and internal ALB
     ingress: [],
@@ -151,7 +148,7 @@ const createSecurityGroups = (env: string): IVpcSecurityGroupSettings => {
     },
     egress
   });
-  const rds = new SecurityGroup(`${baseName}-${env}-rds`, {
+  const rds = new aws.ec2.SecurityGroup(`${baseName}-${env}-rds`, {
     description: 'Security group for RDS resource',
     // only allow access from EMR (for storing metadata)
     ingress: [
@@ -169,7 +166,7 @@ const createSecurityGroups = (env: string): IVpcSecurityGroupSettings => {
     },
     egress
   });
-  const tableau = new SecurityGroup(`${baseName}-${env}-tableau`, {
+  const tableau = new aws.ec2.SecurityGroup(`${baseName}-${env}-tableau`, {
     description: 'Security group for EC2 instance that will be installed with Tableau app',
     // allow access from general ALB instance
     ingress: [],

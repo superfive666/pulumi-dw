@@ -1,19 +1,17 @@
 import * as pulumi from '@pulumi/pulumi';
+import * as aws from '@pulumi/aws';
 
-import { Tags } from '@pulumi/aws';
-import { Bucket } from '@pulumi/aws/s3';
+export const configureS3Bucket = (env: string): aws.s3.Bucket => {
+  const pulumiProject = pulumi.getProject();
+  const stack = pulumi.getStack();
+  const baseTags: aws.Tags = {
+    Project: 'mpdw',
+    'pulumi:Project': pulumiProject,
+    'pulumi:Stack': stack
+  };
 
-const pulumiProject = pulumi.getProject();
-const stack = pulumi.getStack();
-const baseTags: Tags = {
-  Project: 'mpdw',
-  'pulumi:Project': pulumiProject,
-  'pulumi:Stack': stack
-};
-
-export const configureS3Bucket = (env: string): Bucket => {
   const bucketName = `app-mpdw-s3-${env}`;
-  const s3 = new Bucket(bucketName, {
+  const s3 = new aws.s3.Bucket(bucketName, {
     acl: 'private',
     tags: {
       ...baseTags,

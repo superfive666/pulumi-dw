@@ -14,6 +14,8 @@ export const log = (level: 'info' | 'warning' | 'error', message: string) => {
 };
 
 const start = async (): Promise<void> => {
+  log('info', 'Pulumi deployment started...');
+
   // GLOBAL config variables
   const env = pulumi.getStack();
   log('info', `Current pulumi environment building is ${env}`);

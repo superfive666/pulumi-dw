@@ -1,18 +1,16 @@
 import * as pulumi from '@pulumi/pulumi';
-
-import { Tags } from '@pulumi/aws';
-import { Role } from '@pulumi/aws/iam';
+import * as aws from '@pulumi/aws';
 
 interface IIamRoleSettings {
-  alb: Role;
-  emr: Role;
-  rds: Role;
-  tableau: Role;
+  alb: aws.iam.Role;
+  emr: aws.iam.Role;
+  rds: aws.iam.Role;
+  tableau: aws.iam.Role;
 }
 
 const pulumiProject = pulumi.getProject();
 const stack = pulumi.getStack();
-const baseTags: Tags = {
+const baseTags: aws.Tags = {
   Project: 'mpdw',
   'pulumi:Project': pulumiProject,
   'pulumi:Stack': stack
@@ -27,9 +25,9 @@ export const configureIamRoles = (env: string): IIamRoleSettings => {
   return { alb, emr, rds, tableau };
 };
 
-const createAlbRole = (): Role => {
+const createAlbRole = (): aws.iam.Role => {
   const roleName = 'APP_MPDW_ALB_ROLE';
-  const role = new Role(roleName, {
+  const role = new aws.iam.Role(roleName, {
     assumeRolePolicy: JSON.stringify({
       Version: '2012-10-17',
       Statement: []
@@ -43,10 +41,10 @@ const createAlbRole = (): Role => {
   return role;
 };
 
-const createEmrRole = (env: string): Role => {
+const createEmrRole = (env: string): aws.iam.Role => {
   const s3Bucket = `app-mpdw-s3-${env}`;
   const roleName = 'APP_MPDW_EMR_ROLE';
-  const role = new Role(roleName, {
+  const role = new aws.iam.Role(roleName, {
     assumeRolePolicy: JSON.stringify({
       Version: '2012-10-17',
       Statement: [
@@ -90,9 +88,9 @@ const createEmrRole = (env: string): Role => {
   return role;
 };
 
-const createRdsRole = (): Role => {
+const createRdsRole = (): aws.iam.Role => {
   const roleName = 'APP_MPDW_RDS_ROLE';
-  const role = new Role(roleName, {
+  const role = new aws.iam.Role(roleName, {
     assumeRolePolicy: JSON.stringify({
       Version: '2012-10-17',
       Statement: []
@@ -106,9 +104,9 @@ const createRdsRole = (): Role => {
   return role;
 };
 
-const createTableauRole = (): Role => {
+const createTableauRole = (): aws.iam.Role => {
   const roleName = 'APP_MPDW_TABLEAU_ROLE';
-  const role = new Role(roleName, {
+  const role = new aws.iam.Role(roleName, {
     assumeRolePolicy: JSON.stringify({
       Version: '2012-10-17',
       Statement: []

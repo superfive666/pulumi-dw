@@ -1,13 +1,10 @@
 import * as pulumi from '@pulumi/pulumi';
-
-import { Tags } from '@pulumi/aws';
-import { Vpc } from '@pulumi/awsx/ec2';
-import { LoadBalancer } from '@pulumi/aws/lb';
-import { SecurityGroup } from '@pulumi/aws/ec2';
+import * as aws from '@pulumi/aws';
+import * as awsx from '@pulumi/awsx';
 
 const pulumiProject = pulumi.getProject();
 const stack = pulumi.getStack();
-const baseTags: Tags = {
+const baseTags: aws.Tags = {
   'pulumi:Project': pulumiProject,
   'pulumi:Stack': stack,
   purpose: 'alb'
@@ -15,14 +12,14 @@ const baseTags: Tags = {
 
 interface IAlbConfigurationProps {
   env: string;
-  albSecurityGroup: SecurityGroup;
-  albInternalSecurityGroup: SecurityGroup;
-  vpc: Vpc;
+  albSecurityGroup: aws.ec2.SecurityGroup;
+  albInternalSecurityGroup: aws.ec2.SecurityGroup;
+  vpc: awsx.ec2.Vpc;
 }
 
 interface IAlbSettings {
-  internal: LoadBalancer;
-  external: LoadBalancer;
+  internal: aws.lb.LoadBalancer;
+  external: aws.lb.LoadBalancer;
 }
 
 export const configureAlbs = async ({
@@ -49,10 +46,14 @@ export const configureAlbs = async ({
  *
  * @param env The pulumi environment key, such as `dev`
  */
-const createInternalAlb = async (env: string, sg: SecurityGroup, vpc: Vpc): Promise<LoadBalancer> => {
+const createInternalAlb = async (
+  env: string,
+  sg: aws.ec2.SecurityGroup,
+  vpc: awsx.ec2.Vpc
+): Promise<aws.lb.LoadBalancer> => {
   const lbName = `data-lb-${env}-internal`;
   const subnets = await vpc.getSubnetsIds('public');
-  const lb = new LoadBalancer(lbName, {
+  const lb = new aws.lb.LoadBalancer(lbName, {
     internal: true,
     loadBalancerType: 'application',
     securityGroups: [sg.arn],
@@ -73,10 +74,14 @@ const createInternalAlb = async (env: string, sg: SecurityGroup, vpc: Vpc): Prom
  *
  * @param env The pulumi environment key, such as `dev`
  */
-const createExternalAlb = async (env: string, sg: SecurityGroup, vpc: Vpc): Promise<LoadBalancer> => {
+const createExternalAlb = async (
+  env: string,
+  sg: aws.ec2.SecurityGroup,
+  vpc: awsx.ec2.Vpc
+): Promise<aws.lb.LoadBalancer> => {
   const lbName = `data-lb-${env}-external`;
   const subnets = await vpc.getSubnetsIds('public');
-  const lb = new LoadBalancer(lbName, {
+  const lb = new aws.lb.LoadBalancer(lbName, {
     internal: true,
     loadBalancerType: 'application',
     securityGroups: [sg.arn],
