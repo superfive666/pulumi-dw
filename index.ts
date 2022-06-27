@@ -2,8 +2,8 @@ import * as pulumi from '@pulumi/pulumi';
 
 import { configureVpc } from './src/vpc';
 import { configureRds } from './src/rds';
-import { configureS3Bucket } from './src/s3';
 import { configureAlbs } from './src/alb';
+import { configureS3Bucket } from './src/s3';
 import { configureIamRoles } from './src/iam';
 import { configureEmrCluster } from './src/emr';
 import { configureEc2Instance } from './src/ec2';
@@ -27,16 +27,16 @@ const start = async (): Promise<void> => {
   log('info', `IAM roles are created: ${roles}`);
 
   // Create required VPC for the data-platform
-  const {} = configureVpc(env);
-  log('info', `VPC created successfully`);
+  const { vpc, securityGroups } = configureVpc(env);
+  log('info', `VPC created successfully, ${vpc}, ${securityGroups}`);
+
+  // Create small RDS instance for EMR to store metadata information
+  const rds = await configureRds(env, vpc, roles.rds, securityGroups.rds);
+  log('info', `Small RDS instance created successfully for EMR cluster: ${rds}`);
 
   // Create EC2 instance for installation of Tableau
   const tableau = configureEc2Instance(env);
   log('info', `EC2 instance for installing tableau completed successfully: ${tableau}`);
-
-  // Create small RDS instance for EMR to store metadata information
-  const rds = configureRds(env);
-  log('info', `Small RDS instance created successfully for EMR cluster: ${rds}`);
 
   // Create EMR cluster
   const emr = configureEmrCluster(env);

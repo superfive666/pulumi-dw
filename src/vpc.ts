@@ -66,11 +66,12 @@ const createVpc = (env: string): Vpc => {
   const stack = pulumi.getStack();
 
   const config = new pulumi.Config();
-  const vpcName = `data-platform-vpc-${env}`;
+  const vpcName = `app-mpdw-vpc-${env}`;
   const cidrBlock = '10.1.0.0/16';
   const { numberOfAvailabilityZones = 1, numberOfNatGateways = 1 } = config.requireObject<IVpcConfig>('vpc');
 
   const baseTags: Tags = {
+    app: 'mpdw',
     'pulumi:Project': pulumiProject,
     'pulumi:Stack': stack
   };
@@ -87,13 +88,13 @@ const createVpc = (env: string): Vpc => {
   const subnets: VpcSubnetArgs[] = [
     {
       type: 'public',
-      name: `data-${env}-subnet-public`,
+      name: `app-mpdw-subnet-${env}-public`,
       cidrMask: 24,
       tags: baseTags
     },
     {
       type: 'private',
-      name: `data-${env}-subnet-private`,
+      name: `app-mpdw-subnet-${env}-private`,
       cidrMask: 24,
       tags: baseTags
     }
@@ -111,10 +112,11 @@ const createVpc = (env: string): Vpc => {
 };
 
 const createSecurityGroups = (env: string): IVpcSecurityGroupSettings => {
-  const baseName = 'data-platform-sg';
+  const baseName = 'app-mpdw-sg';
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
   const baseTags = {
+    app: 'mpdw',
     'pulumi:Project': pulumiProject,
     'pulumi:Stack': stack
   };

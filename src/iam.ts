@@ -13,6 +13,7 @@ interface IIamRoleSettings {
 const pulumiProject = pulumi.getProject();
 const stack = pulumi.getStack();
 const baseTags: Tags = {
+  app: 'mpdw',
   'pulumi:Project': pulumiProject,
   'pulumi:Stack': stack
 };
@@ -27,7 +28,7 @@ export const configureIamRoles = (env: string): IIamRoleSettings => {
 };
 
 const createAlbRole = (): Role => {
-  const roleName = 'ALB_DEFAULT_ROLE';
+  const roleName = 'APP_MPDW_ALB_ROLE';
   const role = new Role(roleName, {
     assumeRolePolicy: JSON.stringify({
       Version: '2012-10-17',
@@ -43,8 +44,8 @@ const createAlbRole = (): Role => {
 };
 
 const createEmrRole = (env: string): Role => {
-  const s3Bucket = `data-s3-${env}`;
-  const roleName = 'EMR_DEFAULT_ROLE';
+  const s3Bucket = `app-mpdw-s3-${env}`;
+  const roleName = 'APP_MPDW_EMR_ROLE';
   const role = new Role(roleName, {
     assumeRolePolicy: JSON.stringify({
       Version: '2012-10-17',
@@ -60,6 +61,23 @@ const createEmrRole = (env: string): Role => {
           Effect: 'Allow',
           Action: ['s3:ListBucket'],
           Resource: [`arn:aws:s3:::${s3Bucket}`]
+        },
+        // grant required IAM permissions as documented on: https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-instance-fleet.html#emr-fleet-spot-options
+        {
+          Effect: 'Allow',
+          Action: [
+            'ec2:DeleteLaunchTemplate',
+            'ec2:CreateLaunchTemplate',
+            'ec2:DescribeLaunchTemplates',
+            'ec2:CreateLaunchTemplateVersion',
+            'ec2:CreateFleet',
+            // to use targeted capacity reservations, you must include the following additional permissions
+            'ec2:DescribeCapacityReservations',
+            'ec2:DescribeLaunchTemplateVersions',
+            'ec2:DeleteLaunchTemplateVersions',
+            'resource-groups:ListGroupResources'
+          ],
+          Resource: '*'
         }
       ]
     }),
@@ -73,7 +91,7 @@ const createEmrRole = (env: string): Role => {
 };
 
 const createRdsRole = (): Role => {
-  const roleName = 'RDS_DEFAULT_ROLE';
+  const roleName = 'APP_MPDW_RDS_ROLE';
   const role = new Role(roleName, {
     assumeRolePolicy: JSON.stringify({
       Version: '2012-10-17',
@@ -89,7 +107,7 @@ const createRdsRole = (): Role => {
 };
 
 const createTableauRole = (): Role => {
-  const roleName = 'TABLEAU_DEFAULT_ROLE';
+  const roleName = 'APP_MPDW_TABLEAU_ROLE';
   const role = new Role(roleName, {
     assumeRolePolicy: JSON.stringify({
       Version: '2012-10-17',
