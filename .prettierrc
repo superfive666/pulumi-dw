@@ -1,7 +1,7 @@
 {
   "jsxBracketSameLine": false,
   "semi": true,
-  "printWidth": 120,
+  "printWidth": 100,
   "parser": "typescript",
   "singleQuote": true,
   "arrowParens": "always",

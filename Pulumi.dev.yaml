@@ -1,16 +1,23 @@
 config:
   aws:profile: bitdeer-dev
   aws:region: us-west-2
-
-  # vpc related configuration
-  data-platform:vpc:
-    numberOfAvailabilityZones: 2 
-    numberOfNatGateways: 1
-
-  # ec2 related configuration 
   data-platform:ec2:
     instanceType: r6i.2xlarge
-
-  # emr related configuration
   data-platform:emr:
-    instanceGroups: 
+    instanceGroups: null
+  data-platform:hivePassword:
+    secure: AAABAO/KY0RsjiI2hjx/OpAhdDhL/C880+gbeLHxUTAUacskrLewVii2NOODyik=
+  data-platform:masterPassword:
+    secure: AAABAPnW102T3LxlSl2hFf6rLGfoyoDnw/9PC/886uZvY+R8cvxGDcQPMqk0mro=
+  data-platform:rds:
+    allocatedStorage: 10
+    instanceClass: db.t3.small
+    engine: aurora-mysql
+    engineVersion: 5.7.mysql_aurora.2.10.2
+    iamDatabaseAuthenticationEnabled: true
+    masterUsername: root
+    hiveUsername: hive
+    port: 3306
+  data-platform:vpc:
+    numberOfAvailabilityZones: 1
+    numberOfNatGateways: 1
