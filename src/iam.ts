@@ -1,6 +1,8 @@
 import * as pulumi from '@pulumi/pulumi';
 import * as aws from '@pulumi/aws';
 
+import { log } from '..';
+
 interface IIamRoleSettings {
   emr: aws.iam.Role;
   tableau: aws.iam.Role;
@@ -15,8 +17,27 @@ const baseTags: aws.Tags = {
 };
 
 export const configureIamRoles = (s3: aws.s3.Bucket): IIamRoleSettings => {
-  const emr = createEmrRole(s3);
-  const tableau = createTableauRole(s3);
+  const emr = createEmrRole();
+  const tableau = createTableauRole();
+
+  s3.arn.apply((arn: string) => {
+    const emrPolicy = createEmrPolicy(arn);
+    const tableauPolicy = createTableauPolicy(arn);
+
+    const attchEmr = new aws.iam.RolePolicyAttachment('app-mpdw-emr-role-attachment', {
+      role: emr.name,
+      policyArn: emrPolicy.arn
+    });
+
+    attchEmr.id.apply((v) => log('info', `Role access policies attached APP_MPDW_EMR_ROLE: ${v}`));
+
+    const attachTableau = new aws.iam.RolePolicyAttachment('app-mpdw-tableau-role-attachment', {
+      role: tableau.name,
+      policyArn: tableauPolicy.arn
+    });
+
+    attachTableau.id.apply((v) => log('info', `Role access policies attached APP_MPDW_TABLEAU_ROLE: ${v}`));
+  });
 
   return { emr, tableau };
 };
@@ -35,117 +56,91 @@ const instanceAssumePolicy = aws.iam.getPolicyDocument({
   ]
 });
 
-const createEmrRole = (s3: aws.s3.Bucket): aws.iam.Role => {
-  const roleName = 'APP_MPDW_EMR_ROLE';
-  const role = new aws.iam.Role(
-    roleName,
-    {
-      assumeRolePolicy: instanceAssumePolicy.then((policy) => policy.json),
-      inlinePolicies: [
+const createTableauPolicy = (arn: string): aws.iam.Policy => {
+  const policy = new aws.iam.Policy('app-mpdw-tableau-policy', {
+    description: 'App MPDW policy for EMR cluster that allows RDS and S3 to specific resources',
+    policy: JSON.stringify({
+      Version: '2012-10-17',
+      Statement: [
         {
-          name: 'allow-s3-edit',
-          policy: JSON.stringify({
-            Version: '2012-10-17',
-            Statement: [
-              {
-                Effect: 'Allow',
-                Action: ['s3:PutObject', 's3:DeleteObject'],
-                Resource: [s3.arn.apply((v) => v.toString())]
-              }
-            ]
-          })
+          Effect: 'Allow',
+          Action: ['s3:PutObject', 's3:DeleteObject'],
+          Resource: [`${arn}/*`]
         },
         {
-          name: 'allow-s3-read',
-          policy: JSON.stringify({
-            Version: '2012-10-17',
-            Statement: [
-              {
-                Effect: 'Allow',
-                Action: ['s3:ListBucket', 's3:GetObject'],
-                Resource: [s3.arn.apply((v) => v.toString())]
-              }
-            ]
-          })
+          Effect: 'Allow',
+          Action: ['s3:ListBucket', 's3:GetObject'],
+          Resource: [`${arn}/*`]
+        }
+      ]
+    })
+  });
+
+  return policy;
+};
+
+const createEmrPolicy = (arn: string): aws.iam.Policy => {
+  const policy = new aws.iam.Policy('app-mpdw-emr-policy', {
+    description: 'App MPDW policy for EMR cluster that allows RDS and S3 to specific resources',
+    policy: JSON.stringify({
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Effect: 'Allow',
+          Action: ['s3:PutObject', 's3:DeleteObject'],
+          Resource: [`${arn}/*`]
+        },
+        {
+          Effect: 'Allow',
+          Action: ['s3:ListBucket', 's3:GetObject'],
+          Resource: [`${arn}/*`]
         },
         // grant required IAM permissions as documented on: https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-instance-fleet.html#emr-fleet-spot-options
         {
-          name: 'allow-emr-ec2',
-          policy: JSON.stringify({
-            Version: '2012-10-17',
-            Statement: [
-              {
-                Effect: 'Allow',
-                Action: [
-                  'ec2:DeleteLaunchTemplate',
-                  'ec2:CreateLaunchTemplate',
-                  'ec2:DescribeLaunchTemplates',
-                  'ec2:CreateLaunchTemplateVersion',
-                  'ec2:CreateFleet',
-                  // to use targeted capacity reservations, you must include the following additional permissions
-                  'ec2:DescribeCapacityReservations',
-                  'ec2:DescribeLaunchTemplateVersions',
-                  'ec2:DeleteLaunchTemplateVersions',
-                  'resource-groups:ListGroupResources'
-                ],
-                Resource: '*'
-              }
-            ]
-          })
+          Effect: 'Allow',
+          Action: [
+            'ec2:DeleteLaunchTemplate',
+            'ec2:CreateLaunchTemplate',
+            'ec2:DescribeLaunchTemplates',
+            'ec2:CreateLaunchTemplateVersion',
+            'ec2:CreateFleet',
+            // to use targeted capacity reservations, you must include the following additional permissions
+            'ec2:DescribeCapacityReservations',
+            'ec2:DescribeLaunchTemplateVersions',
+            'ec2:DeleteLaunchTemplateVersions',
+            'resource-groups:ListGroupResources'
+          ],
+          Resource: '*'
         }
-      ],
-      tags: {
-        ...baseTags,
-        purpose: 'emr'
-      }
-    },
-    { dependsOn: [s3] }
-  );
+      ]
+    })
+  });
+
+  return policy;
+};
+
+const createEmrRole = (): aws.iam.Role => {
+  const roleName = 'APP_MPDW_EMR_ROLE';
+  const role = new aws.iam.Role(roleName, {
+    assumeRolePolicy: instanceAssumePolicy.then((policy) => policy.json),
+    tags: {
+      ...baseTags,
+      purpose: 'emr'
+    }
+  });
 
   return role;
 };
 
-const createTableauRole = (s3: aws.s3.Bucket): aws.iam.Role => {
+const createTableauRole = (): aws.iam.Role => {
   const roleName = 'APP_MPDW_TABLEAU_ROLE';
-  const role = new aws.iam.Role(
-    roleName,
-    {
-      assumeRolePolicy: instanceAssumePolicy.then((policy) => policy.json),
-      inlinePolicies: [
-        {
-          name: 'allow-s3-edit',
-          policy: JSON.stringify({
-            Version: '2012-10-17',
-            Statement: [
-              {
-                Effect: 'Allow',
-                Action: ['s3:PutObject', 's3:DeleteObject'],
-                Resource: [s3.arn.apply((v) => v.toString())]
-              }
-            ]
-          })
-        },
-        {
-          name: 'allow-s3-read',
-          policy: JSON.stringify({
-            Version: '2012-10-17',
-            Statement: [
-              {
-                Effect: 'Allow',
-                Action: ['s3:ListBucket', 's3:GetObject'],
-                Resource: [s3.arn.apply((v) => v.toString())]
-              }
-            ]
-          })
-        }
-      ],
-      tags: {
-        ...baseTags,
-        purpose: 'tableau'
-      }
-    },
-    { dependsOn: [s3] }
-  );
+  const role = new aws.iam.Role(roleName, {
+    assumeRolePolicy: instanceAssumePolicy.then((policy) => policy.json),
+    tags: {
+      ...baseTags,
+      purpose: 'tableau'
+    }
+  });
 
   return role;
 };
