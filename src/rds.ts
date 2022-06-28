@@ -9,7 +9,6 @@ interface IRdsConfig {
   port: number;
   masterUsername: string;
   hiveUsername: string;
-  allocatedStorage: number;
   iamDatabaseAuthenticationEnabled: boolean;
   instanceClass: string;
 }
@@ -38,7 +37,6 @@ export const configureRds = async (
     port,
     masterUsername,
     hiveUsername,
-    allocatedStorage,
     iamDatabaseAuthenticationEnabled
   } = config.requireObject<IRdsConfig>('rds');
 
@@ -61,11 +59,10 @@ export const configureRds = async (
       vpcSecurityGroupIds: [sg.id],
       dbSubnetGroupName,
       instanceClass,
-      allocatedStorage,
 
       // Integrate with AWS KMS for key deployment
       username: masterUsername,
-      password: pulumi.interpolate`${password}`,
+      password: password.apply((v) => v),
       port,
       iamDatabaseAuthenticationEnabled,
 
@@ -109,7 +106,7 @@ const createDbUser = (
   const provider = new mysql.Provider('mysql', {
     endpoint: rds.endpoint,
     username: masterUsername,
-    password: masterPassword
+    password: masterPassword.apply((v) => v)
   });
 
   const databaseName = 'hive';
@@ -125,7 +122,7 @@ const createDbUser = (
     hiveUsername,
     {
       user: hiveUsername,
-      plaintextPassword: hivePassword
+      plaintextPassword: hivePassword.apply((v) => v)
     },
     { provider, dependsOn: [rds, database, provider] }
   );

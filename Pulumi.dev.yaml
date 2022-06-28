@@ -6,18 +6,17 @@ config:
   data-platform:emr:
     instanceGroups: null
   data-platform:hivePassword:
-    secure: AAABAO/KY0RsjiI2hjx/OpAhdDhL/C880+gbeLHxUTAUacskrLewVii2NOODyik=
+    secure: AAABANLkxlhsXpRA3WSkfWW8krtaxBuHG1hThTno3a5DnJ1RKSedMLX5V4eJ6VA=
   data-platform:masterPassword:
-    secure: AAABAPnW102T3LxlSl2hFf6rLGfoyoDnw/9PC/886uZvY+R8cvxGDcQPMqk0mro=
+    secure: AAABAHcJ6MXWmIPoczL9VIyz/TBUFaUHIVWorquadJSzc4Ubwys3PED3U6x2tCI=
   data-platform:rds:
-    allocatedStorage: 10
-    instanceClass: db.t3.small
     engine: aurora-mysql
     engineVersion: 5.7.mysql_aurora.2.10.2
-    iamDatabaseAuthenticationEnabled: true
-    masterUsername: root
     hiveUsername: hive
+    iamDatabaseAuthenticationEnabled: true
+    instanceClass: db.t3.small
+    masterUsername: root
     port: 3306
   data-platform:vpc:
-    numberOfAvailabilityZones: 1
+    numberOfAvailabilityZones: 2
     numberOfNatGateways: 1
