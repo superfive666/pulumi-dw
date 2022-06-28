@@ -73,10 +73,13 @@ const createVpc = (env: string): awsx.ec2.Vpc => {
   log('info', `{VPC} - number of availability zones: ${numberOfAvailabilityZones}`);
   log('info', `{VPC} - number of NAT gateways: ${numberOfNatGateways}`);
 
+  const timestamp = new Date().toISOString();
+
   const baseTags: aws.Tags = {
     Project: 'mpdw',
     'pulumi:Project': pulumiProject,
-    'pulumi:Stack': stack
+    'pulumi:Stack': stack,
+    timestamp
   };
 
   const tags: aws.Tags = {
@@ -124,11 +127,14 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
     'pulumi:Stack': stack
   };
 
+  const timestamp = new Date().toISOString();
+
   const alb = new aws.ec2.SecurityGroup(
     `${baseName}-${env}-alb`,
     {
+      name: `${baseName}-${env}-alb`,
       vpcId: vpc.id,
-      description: 'Security group for ALB resource',
+      description: `Security group for ALB resource ${timestamp}`,
       // allow 80 and 443
       ingress: [ALLOW_ALL_HTTP, ALLOW_ALL_HTTPS],
       tags: {
@@ -143,8 +149,9 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
   const alb2 = new aws.ec2.SecurityGroup(
     `${baseName}-${env}-alb2`,
     {
+      name: `${baseName}-${env}-alb2`,
       vpcId: vpc.id,
-      description: 'Security group for internal ALB resource',
+      description: `Security group for internal ALB resource ${timestamp}`,
       // allow all relevant ports
       ingress: [],
       tags: {
@@ -159,8 +166,9 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
   const emr = new aws.ec2.SecurityGroup(
     `${baseName}-${env}-emr`,
     {
+      name: `${baseName}-${env}-emr`,
       vpcId: vpc.id,
-      description: 'Security group for EMR resource',
+      description: `Security group for EMR resource ${timestamp}`,
       // allow access from tableau and internal ALB
       ingress: [],
       tags: {
@@ -175,8 +183,9 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
   const rds = new aws.ec2.SecurityGroup(
     `${baseName}-${env}-rds`,
     {
+      name: `${baseName}-${env}-rds`,
       vpcId: vpc.id,
-      description: 'Security group for RDS resource',
+      description: `Security group for RDS resource ${timestamp}`,
       // only allow access from EMR (for storing metadata)
       ingress: [
         {
@@ -201,8 +210,9 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
   const tableau = new aws.ec2.SecurityGroup(
     `${baseName}-${env}-tableau`,
     {
+      name: `${baseName}-${env}-tableau`,
       vpcId: vpc.id,
-      description: 'Security group for EC2 instance that will be installed with Tableau app',
+      description: `Security group for EC2 instance that will be installed with Tableau app ${timestamp}`,
       // allow access from general ALB instance
       ingress: [],
       tags: {

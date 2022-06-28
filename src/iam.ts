@@ -10,10 +10,12 @@ interface IIamRoleSettings {
 
 const pulumiProject = pulumi.getProject();
 const stack = pulumi.getStack();
+const timestamp = new Date().toISOString();
 const baseTags: aws.Tags = {
   Project: 'mpdw',
   'pulumi:Project': pulumiProject,
-  'pulumi:Stack': stack
+  'pulumi:Stack': stack,
+  timestamp
 };
 
 export const configureIamRoles = (s3: aws.s3.Bucket): IIamRoleSettings => {
@@ -24,17 +26,25 @@ export const configureIamRoles = (s3: aws.s3.Bucket): IIamRoleSettings => {
     const emrPolicy = createEmrPolicy(arn);
     const tableauPolicy = createTableauPolicy(arn);
 
-    const attchEmr = new aws.iam.RolePolicyAttachment('app-mpdw-emr-role-attachment', {
-      role: emr.name,
-      policyArn: emrPolicy.arn
-    });
+    const attchEmr = new aws.iam.RolePolicyAttachment(
+      'app-mpdw-emr-role-attachment',
+      {
+        role: emr.name,
+        policyArn: emrPolicy.arn
+      },
+      { dependsOn: [s3] }
+    );
 
     attchEmr.id.apply((v) => log('info', `Role access policies attached APP_MPDW_EMR_ROLE: ${v}`));
 
-    const attachTableau = new aws.iam.RolePolicyAttachment('app-mpdw-tableau-role-attachment', {
-      role: tableau.name,
-      policyArn: tableauPolicy.arn
-    });
+    const attachTableau = new aws.iam.RolePolicyAttachment(
+      'app-mpdw-tableau-role-attachment',
+      {
+        role: tableau.name,
+        policyArn: tableauPolicy.arn
+      },
+      { dependsOn: [s3] }
+    );
 
     attachTableau.id.apply((v) => log('info', `Role access policies attached APP_MPDW_TABLEAU_ROLE: ${v}`));
   });
@@ -57,8 +67,9 @@ const instanceAssumePolicy = aws.iam.getPolicyDocument({
 });
 
 const createTableauPolicy = (arn: string): aws.iam.Policy => {
+  const timestamp = new Date().toISOString();
   const policy = new aws.iam.Policy('app-mpdw-tableau-policy', {
-    description: 'App MPDW policy for EMR cluster that allows RDS and S3 to specific resources',
+    description: `App MPDW policy for Tableau EC2 instance that allows S3 to specific resources ${timestamp}`,
     policy: JSON.stringify({
       Version: '2012-10-17',
       Statement: [
@@ -80,8 +91,9 @@ const createTableauPolicy = (arn: string): aws.iam.Policy => {
 };
 
 const createEmrPolicy = (arn: string): aws.iam.Policy => {
+  const timestamp = new Date().toISOString();
   const policy = new aws.iam.Policy('app-mpdw-emr-policy', {
-    description: 'App MPDW policy for EMR cluster that allows RDS and S3 to specific resources',
+    description: `App MPDW policy for EMR cluster that allows EC2 and S3 to specific resources ${timestamp}`,
     policy: JSON.stringify({
       Version: '2012-10-17',
       Statement: [

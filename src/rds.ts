@@ -9,7 +9,6 @@ interface IRdsConfig {
 export const configureRds = async (
   env: string,
   vpc: awsx.ec2.Vpc,
-  iam: aws.iam.Role,
   sg: aws.ec2.SecurityGroup
 ): Promise<aws.rds.Cluster> => {
   const pulumiProject = pulumi.getProject();
@@ -35,7 +34,6 @@ export const configureRds = async (
     // aws rds describe-db-engine-versions --engine aurora-postgresql --query '*[].[EngineVersion]' --output text --region us-west-2
     engineVersion: '13.6',
 
-    iamRoles: [iam.arn],
     vpcSecurityGroupIds: [sg.id],
     dbSubnetGroupName,
     dbClusterInstanceClass: instanceType,
