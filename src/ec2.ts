@@ -5,6 +5,7 @@ import * as aws from '@pulumi/aws';
 import { input } from '@pulumi/aws/types';
 
 interface IEc2Config {
+  ami: string;
   instanceType: string;
   userData: string;
 }
@@ -27,7 +28,7 @@ export const configureEc2Instance = async (
   };
 
   const config = new pulumi.Config();
-  const { instanceType, userData } = config.requireObject<IEc2Config>('ec2');
+  const { ami, instanceType, userData } = config.requireObject<IEc2Config>('ec2');
 
   const serverName = `app-mpdw-ec2-${env}`;
   const keyName = `app-mpdw-keypairs-${env}`;
@@ -46,6 +47,7 @@ export const configureEc2Instance = async (
     serverName,
     {
       instanceType,
+      ami,
       keyName,
       vpcSecurityGroupIds: [sg.id],
       iamInstanceProfile: iam.name,
