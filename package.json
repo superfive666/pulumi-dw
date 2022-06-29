@@ -1,12 +1,16 @@
 {
-    "name": "data-platform",
-    "devDependencies": {
-        "@types/node": "^14"
-    },
-    "dependencies": {
-        "@pulumi/aws": "^5.0.0",
-        "@pulumi/awsx": "^0.40.0",
-        "@pulumi/mysql": "^3.1.0",
-        "@pulumi/pulumi": "^3.0.0"
-    }
+  "name": "data-platform",
+  "scripts": {
+    "generate:key:dev": "aws ec2 create-key-pair --key-name app-mpdw-keypairs-dev --key-type rsa --key-format pem --profile mpdw-dev > app-mpdw-keypairs-dev-info.json",
+    "generate:key:sit": "aws ec2 create-key-pair --key-name app-mpdw-keypairs-dev --key-type rsa --key-format pem --profile mpdw-dev > app-mpdw-keypairs-dev-info.json"
+  },
+  "devDependencies": {
+    "@types/node": "^14"
+  },
+  "dependencies": {
+    "@pulumi/aws": "^5.0.0",
+    "@pulumi/awsx": "^0.40.0",
+    "@pulumi/mysql": "^3.1.0",
+    "@pulumi/pulumi": "^3.0.0"
+  }
 }

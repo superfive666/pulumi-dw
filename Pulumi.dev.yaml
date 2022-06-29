@@ -1,5 +1,5 @@
 config:
-  aws:profile: bitdeer-dev
+  aws:profile: mpdw-dev
   aws:region: us-west-2
   data-platform:ec2:
     instanceType: r6i.2xlarge
@@ -20,3 +20,5 @@ config:
   data-platform:vpc:
     numberOfAvailabilityZones: 2
     numberOfNatGateways: 1
+  data-platform:timestamp:
+    enable: false
