@@ -3,6 +3,10 @@ config:
   aws:region: us-west-2
   data-platform:ec2:
     instanceType: r6i.2xlarge
+    userData: >
+      sudo apt-get update
+      sudo apt-get install git zsh
+      ssh-keygen -t rsa -b 4096 -C "SSH key for tableau instance" \n\n\n\n\n
   data-platform:emr:
     instanceGroups: null
   data-platform:hivePassword:

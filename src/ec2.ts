@@ -2,11 +2,19 @@ import * as pulumi from '@pulumi/pulumi';
 import * as awsx from '@pulumi/awsx';
 import * as aws from '@pulumi/aws';
 
+import { input } from '@pulumi/aws/types';
+
 interface IEc2Config {
   instanceType: string;
+  userData: string;
 }
 
-export const configureEc2Instance = (env: string, vpc: awsx.ec2.Vpc): aws.ec2.Instance => {
+export const configureEc2Instance = async (
+  env: string,
+  vpc: awsx.ec2.Vpc,
+  sg: aws.ec2.SecurityGroup,
+  iam: aws.iam.Role
+): Promise<aws.ec2.Instance> => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
   const timestamp = new Date().toISOString();
@@ -19,13 +27,35 @@ export const configureEc2Instance = (env: string, vpc: awsx.ec2.Vpc): aws.ec2.In
   };
 
   const config = new pulumi.Config();
-  const { instanceType } = config.requireObject<IEc2Config>('ec2');
+  const { instanceType, userData } = config.requireObject<IEc2Config>('ec2');
 
   const serverName = `app-mpdw-ec2-${env}`;
   const keyName = `app-mpdw-keypairs-${env}`;
+  const subnet = (await vpc.getSubnets('public'))?.[0];
+  const subnetId = subnet.id;
+
+  const ebsBlockDevices: input.ec2.InstanceEbsBlockDevice[] = [{
+    deviceName: `app-mpdw-ebs-${env}-tableau`,
+    volumeSize: 40,
+    volumeType: 'gp3',
+    tags,
+  }];
 
   // Pending: AMI, vpc, subnet, volume, user-data
-  const server = new aws.ec2.Instance(serverName, { instanceType, keyName, tags });
+  const server = new aws.ec2.Instance(
+    serverName,
+    {
+      instanceType,
+      keyName,
+      vpcSecurityGroupIds: [sg.id],
+      iamInstanceProfile: iam.name,
+      subnetId,
+      ebsBlockDevices,
+      userData,
+      tags
+    },
+    { dependsOn: [vpc, sg, iam] }
+  );
 
-  return server;
+  return Promise.resolve(server);
 };
