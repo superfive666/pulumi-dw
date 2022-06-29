@@ -35,12 +35,25 @@ export const configureEc2Instance = async (
   const subnet = (await vpc.getSubnets('public'))?.[0];
   const subnetId = subnet.id;
 
-  const ebsBlockDevices: input.ec2.InstanceEbsBlockDevice[] = [{
-    deviceName: `app-mpdw-ebs-${env}-tableau`,
-    volumeSize: 40,
-    volumeType: 'gp3',
-    tags,
-  }];
+  const ebsBlockDevices: input.ec2.InstanceEbsBlockDevice[] = [
+    {
+      deviceName: `app-mpdw-ebs-${env}-tableau`,
+      volumeSize: 40,
+      volumeType: 'gp3',
+      tags
+    }
+  ];
+
+  const profileName = 'APP_MPDW_EC2_INSTANCE_RPOFILE';
+  const iamInstanceProfile = new aws.iam.InstanceProfile(
+    profileName,
+    {
+      name: profileName,
+      role: iam.name,
+      tags
+    },
+    { dependsOn: [iam] }
+  );
 
   // Pending: AMI, vpc, subnet, volume, user-data
   const server = new aws.ec2.Instance(
@@ -50,13 +63,13 @@ export const configureEc2Instance = async (
       ami,
       keyName,
       vpcSecurityGroupIds: [sg.id],
-      iamInstanceProfile: iam.name,
+      iamInstanceProfile,
       subnetId,
       ebsBlockDevices,
       userData,
       tags
     },
-    { dependsOn: [vpc, sg, iam] }
+    { dependsOn: [vpc, sg, iam, iamInstanceProfile] }
   );
 
   return Promise.resolve(server);
