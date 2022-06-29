@@ -38,6 +38,14 @@ const ALLOW_ALL_HTTPS: pulumi.Input<aws.types.input.ec2.SecurityGroupIngress> = 
   cidrBlocks: ['0.0.0.0/0']
 };
 
+const ALLOW_OFFICE_SSH: pulumi.Input<aws.types.input.ec2.SecurityGroupIngress> = {
+  description: 'Allow all https traffic from anywhere',
+  fromPort: 22,
+  toPort: 22,
+  protocol: 'tcp',
+  cidrBlocks: ['165.225.112.137/32']
+};
+
 /**
  * Standard Security Egress Rule
  * this rule allow all internal resources to be able to access the internet;
@@ -69,7 +77,8 @@ const createVpc = (env: string): awsx.ec2.Vpc => {
   const cidrBlock = '10.1.0.0/16';
   log('info', `Creating project VPC named: ${vpcName} and CIDR block: ${cidrBlock}`);
 
-  const { numberOfAvailabilityZones, numberOfNatGateways } = config.requireObject<IVpcConfig>('vpc');
+  const { numberOfAvailabilityZones, numberOfNatGateways } =
+    config.requireObject<IVpcConfig>('vpc');
   log('info', `{VPC} - number of availability zones: ${numberOfAvailabilityZones}`);
   log('info', `{VPC} - number of NAT gateways: ${numberOfNatGateways}`);
 
@@ -214,14 +223,37 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
       vpcId: vpc.id,
       description: `Security group for EC2 instance that will be installed with Tableau app ${timestamp}`,
       // allow access from general ALB instance
-      ingress: [],
+      ingress: [
+        ALLOW_OFFICE_SSH,
+        {
+          description: 'Allow internal ALB to direct SSH traffic to tableau ec2 instance',
+          protocol: 'tcp',
+          fromPort: 22,
+          toPort: 22,
+          securityGroups: [alb2.id]
+        },
+        {
+          description: 'Allow all ALB to direct HTTP traffic to tableau ec2 intsance',
+          protocol: 'tcp',
+          fromPort: 80,
+          toPort: 80,
+          securityGroups: [alb.id, alb2.id]
+        },
+        {
+          description: 'Allow all ALB to direct HTTPS traffic to tableau ec2 intsance',
+          protocol: 'tcp',
+          fromPort: 443,
+          toPort: 443,
+          securityGroups: [alb.id, alb2.id]
+        },
+      ],
       tags: {
         ...baseTags,
         purpose: 'tableau'
       },
       egress
     },
-    { dependsOn: [vpc] }
+    { dependsOn: [vpc, alb, alb2] }
   );
 
   return { alb, alb2, emr, rds, tableau };
