@@ -125,10 +125,15 @@ export const testDeploy = async () => {
   );
 
   return Promise.resolve({
-    s3, roles, vpc, securityGroups, tableau
-  })
+    s3,
+    roles,
+    vpc,
+    securityGroups,
+    tableau
+  });
 };
 
-// start();
+export let stacks = {};
 
-testDeploy();
+// start();
+testDeploy().then((resp) => (stacks = resp));

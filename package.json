@@ -1,9 +1,14 @@
 {
   "name": "data-platform",
   "scripts": {
-    "generate:key:dev": "aws ec2 create-key-pair --key-name app-mpdw-keypairs-dev --key-type rsa --key-format pem --profile mpdw-dev > app-mpdw-keypairs-dev-info.json",
-    "generate:key:sit": "aws ec2 create-key-pair --key-name app-mpdw-keypairs-dev --key-type rsa --key-format pem --profile mpdw-dev > app-mpdw-keypairs-dev-info.json",
-    "connect:ec2": "ssh -i ./app-mpdw-keypairs-dev.pem ubunut@$()"
+    "generate:key:dev": "aws ec2 create-key-pair --key-name app-mpdw-keypairs-dev --key-type rsa --key-format pem --profile mpdw-dev > app-mpdw-keypairs-dev-info.json \n cat app-mpdw-keypairs-dev-info.json | jq -r .KeyMaterial > app-mpdw-keyparis-dev.pem",
+    "generate:key:sit": "aws ec2 create-key-pair --key-name app-mpdw-keypairs-sit --key-type rsa --key-format pem --profile mpdw-sit > app-mpdw-keypairs-sit-info.json \n cat app-mpdw-keypairs-sit-info.json | jq -r .KeyMaterial > app-mpdw-keyparis-sit.pem",
+    "connect:ec2:dev": "ssh -i ./app-mpdw-keypairs-dev.pem ubuntu@$(pulumi stack output | jq '.ec2.ipv4')",
+    "connect:ec2:sit": "ssh -i ./app-mpdw-keypairs-sit.pem ubuntu@$(pulumi stack output | jq '.ec2.ipv4')",
+    "pulumi:deploy": "pulumi up",
+    "pulumi:destroy": "pulumi destroy",
+    "pulumi:cancel": "pulumi cancel",
+    "pulumi:output": "pulumi stack output"
   },
   "devDependencies": {
     "@types/node": "^14"
