@@ -2,6 +2,8 @@ import * as pulumi from '@pulumi/pulumi';
 import * as aws from '@pulumi/aws';
 import * as awsx from '@pulumi/awsx';
 
+import { input } from '@pulumi/aws/types';
+
 import { log } from '../index';
 
 interface IVpcSecurityGroupSettings {
@@ -22,27 +24,31 @@ interface IVpcConfig {
   numberOfNatGateways: number;
 }
 
-const ALLOW_ALL_HTTP: pulumi.Input<aws.types.input.ec2.SecurityGroupIngress> = {
-  description: 'Allow all http traffic from anywhere',
-  fromPort: 80,
-  toPort: 80,
-  protocol: 'tcp',
+const baseIngressRule = (
+  port: number,
+  description: string
+): pulumi.Input<input.ec2.SecurityGroupIngress> => {
+  return {
+    description,
+    fromPort: port,
+    toPort: port,
+    protocol: 'tcp'
+  };
+};
+
+const ALLOW_ALL_HTTP: pulumi.Input<input.ec2.SecurityGroupIngress> = {
+  ...baseIngressRule(80, 'Allow all http traffic from anywhere'),
   cidrBlocks: ['0.0.0.0/0']
 };
 
 const ALLOW_ALL_HTTPS: pulumi.Input<aws.types.input.ec2.SecurityGroupIngress> = {
-  description: 'Allow all https traffic from anywhere',
-  fromPort: 443,
-  toPort: 443,
-  protocol: 'tcp',
+  ...baseIngressRule(443, 'Allow all https traffic from anywhere'),
   cidrBlocks: ['0.0.0.0/0']
 };
 
+// SSH to instance should be via jump server for environments higher than dev
 const ALLOW_OFFICE_SSH: pulumi.Input<aws.types.input.ec2.SecurityGroupIngress> = {
-  description: 'Allow all https traffic from anywhere',
-  fromPort: 22,
-  toPort: 22,
-  protocol: 'tcp',
+  ...baseIngressRule(22, 'Allow SSH traffic from office IP'),
   cidrBlocks: ['165.225.112.137/32']
 };
 
@@ -172,49 +178,6 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
     { dependsOn: [vpc] }
   );
 
-  const emr = new aws.ec2.SecurityGroup(
-    `${baseName}-${env}-emr`,
-    {
-      name: `${baseName}-${env}-emr`,
-      vpcId: vpc.id,
-      description: `Security group for EMR resource ${timestamp}`,
-      // allow access from tableau and internal ALB
-      ingress: [],
-      tags: {
-        ...baseTags,
-        purpose: 'emr'
-      },
-      egress
-    },
-    { dependsOn: [vpc] }
-  );
-
-  const rds = new aws.ec2.SecurityGroup(
-    `${baseName}-${env}-rds`,
-    {
-      name: `${baseName}-${env}-rds`,
-      vpcId: vpc.id,
-      description: `Security group for RDS resource ${timestamp}`,
-      // only allow access from EMR (for storing metadata)
-      ingress: [
-        {
-          description: 'EMR access right',
-          protocol: 'tcp',
-          fromPort: 5432,
-          toPort: 5432,
-          securityGroups: [emr.id]
-        }
-      ],
-      tags: {
-        ...baseTags,
-        purpose: 'rds'
-      },
-      egress
-    },
-    {
-      dependsOn: [emr, vpc]
-    }
-  );
 
   const tableau = new aws.ec2.SecurityGroup(
     `${baseName}-${env}-tableau`,
@@ -225,13 +188,6 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
       // allow access from general ALB instance
       ingress: [
         ALLOW_OFFICE_SSH,
-        {
-          description: 'Allow internal ALB to direct SSH traffic to tableau ec2 instance',
-          protocol: 'tcp',
-          fromPort: 22,
-          toPort: 22,
-          securityGroups: [alb2.id]
-        },
         {
           description: 'Allow all ALB to direct HTTP traffic to tableau ec2 intsance',
           protocol: 'tcp',
@@ -245,7 +201,7 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
           fromPort: 443,
           toPort: 443,
           securityGroups: [alb.id, alb2.id]
-        },
+        }
       ],
       tags: {
         ...baseTags,
@@ -254,6 +210,52 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
       egress
     },
     { dependsOn: [vpc, alb, alb2] }
+  );
+
+  const emr = new aws.ec2.SecurityGroup(
+    `${baseName}-${env}-emr`,
+    {
+      name: `${baseName}-${env}-emr`,
+      vpcId: vpc.id,
+      description: `Security group for EMR resource ${timestamp}`,
+      // allow access from tableau and internal ALB
+      ingress: [
+        {
+          ...baseIngressRule(8889, 'Allow internal ALB and Tableau to login to presto service'),
+          securityGroups: [alb2.id, tableau.id]
+        }
+      ],
+      tags: {
+        ...baseTags,
+        purpose: 'emr'
+      },
+      egress
+    },
+    { dependsOn: [vpc, alb2, tableau] }
+  );
+
+  const rds = new aws.ec2.SecurityGroup(
+    `${baseName}-${env}-rds`,
+    {
+      name: `${baseName}-${env}-rds`,
+      vpcId: vpc.id,
+      description: `Security group for RDS resource ${timestamp}`,
+      // only allow access from EMR (for storing metadata)
+      ingress: [
+        {
+          ...baseIngressRule(3306, 'EMR access right'),
+          securityGroups: [emr.id]
+        }
+      ],
+      tags: {
+        ...baseTags,
+        purpose: 'rds'
+      },
+      egress
+    },
+    {
+      dependsOn: [emr, vpc]
+    }
   );
 
   return { alb, alb2, emr, rds, tableau };

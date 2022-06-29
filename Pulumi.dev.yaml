@@ -8,7 +8,44 @@ config:
       sudo apt-get update
       sudo apt-get install git zsh
   data-platform:emr:
-    instanceGroups: null
+    ebsRootVolumeSize: 30
+    scaleDownBehavior: TERMINATE_AT_TASK_COMPLETION 
+    releaseLabel: emr-6.6.0
+    osReleaseLabel: 2.0.20220406.1
+    instanceGroups:
+      - InstanceCount: 1 
+        EbsConfiguration:
+          EbsBlockDeviceConfigs:
+            - VolumeSpecification:
+                SizeInGB: 32
+                VolumeType: gp2
+              VolumesPerInstance: 1 
+          EbsOptimized: true,
+        InstanceGroupType: TASK
+        InstanceType: m6g.xlarge
+        Name: Task - 3
+      - InstanceCount: 3 
+        EbsConfiguration:
+          EbsBlockDeviceConfigs:
+            - VolumeSpecification:
+                SizeInGB: 32
+                VolumeType: gp2
+              VolumesPerInstance: 2 
+          EbsOptimized: true,
+        InstanceGroupType: MASTER
+        InstanceType: m5.xlarge 
+        Name: Master - 1
+      - InstanceCount: 1 
+        EbsConfiguration:
+          EbsBlockDeviceConfigs:
+            - VolumeSpecification:
+                SizeInGB: 32
+                VolumeType: gp2
+              VolumesPerInstance: 2 
+          EbsOptimized: true,
+        InstanceGroupType: TASK
+        InstanceType: m6g.xlarge 
+        Name: Core - 2
   data-platform:hivePassword:
     secure: AAABANLkxlhsXpRA3WSkfWW8krtaxBuHG1hThTno3a5DnJ1RKSedMLX5V4eJ6VA=
   data-platform:masterPassword:
