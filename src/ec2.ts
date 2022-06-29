@@ -37,7 +37,8 @@ export const configureEc2Instance = async (
 
   const ebsBlockDevices: input.ec2.InstanceEbsBlockDevice[] = [
     {
-      deviceName: `app-mpdw-ebs-${env}-tableau`,
+      deviceName: `/dev/sda1`,
+      deleteOnTermination: true,
       volumeSize: 40,
       volumeType: 'gp3',
       tags

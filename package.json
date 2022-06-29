@@ -2,7 +2,8 @@
   "name": "data-platform",
   "scripts": {
     "generate:key:dev": "aws ec2 create-key-pair --key-name app-mpdw-keypairs-dev --key-type rsa --key-format pem --profile mpdw-dev > app-mpdw-keypairs-dev-info.json",
-    "generate:key:sit": "aws ec2 create-key-pair --key-name app-mpdw-keypairs-dev --key-type rsa --key-format pem --profile mpdw-dev > app-mpdw-keypairs-dev-info.json"
+    "generate:key:sit": "aws ec2 create-key-pair --key-name app-mpdw-keypairs-dev --key-type rsa --key-format pem --profile mpdw-dev > app-mpdw-keypairs-dev-info.json",
+    "connect:ec2": "ssh -i ./app-mpdw-keypairs-dev.pem ubunut@$()"
   },
   "devDependencies": {
     "@types/node": "^14"
