@@ -57,7 +57,6 @@ export const configureEmrCluster = (
   const emrClusterName = `app-mpdw-emr-${env}`;
 
   const emr = new aws.emr.Cluster(emrClusterName, {
-
     tags
   }, { dependsOn: [vpc, rds] });
 

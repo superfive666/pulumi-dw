@@ -151,6 +151,16 @@ npm run generate:key:sit
 # keep with care
 ```
 
+A few passwords that need to be re-generated (and not committed to git):
+
+```
+# Generate the root password for the external metadata store RDS instance:
+pulumi config set --secret masterPassword <New-Password-Here>
+
+# Generate the new user `hive` password authentication credentials: 
+pulumi config set --secret hivePassword <New-Password-Here>
+```
+
 Run the following commands for deployment:
 
 ```
