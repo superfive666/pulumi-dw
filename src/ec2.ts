@@ -39,7 +39,7 @@ export const configureEc2Instance = async (
     {
       deviceName: `/dev/sda1`,
       deleteOnTermination: true,
-      volumeSize: 40,
+      volumeSize: 500,
       volumeType: 'gp3',
       tags
     }
