@@ -2,7 +2,6 @@ import * as pulumi from '@pulumi/pulumi';
 
 import { configureVpc } from './src/vpc';
 import { configureRds } from './src/rds';
-import { configureAlbs } from './src/alb';
 import { configureS3Bucket } from './src/s3';
 import { configureIamRoles } from './src/iam';
 import { configureEc2Instance } from './src/ec2';
@@ -33,31 +32,31 @@ export const start = () => {
   });
 
   // Create required VPC for the data-platform
-  const { vpc, securityGroups } = configureVpc(env);
-  pulumi
-    .all([
-      vpc.vpc.arn,
-      securityGroups.alb.arn,
-      securityGroups.alb2.arn,
-      securityGroups.emr.arn,
-      securityGroups.rds.arn,
-      securityGroups.tableau.arn
-    ])
-    .apply(([vpc, alb, alb2, emr, rds, tableau]) => {
-      log('info', `Project APP MPDW VPC created with ARN: ${vpc}`);
-      log('info', `Security group for standard ALB created with ARN: ${alb}`);
-      log('info', `Security group for internal (engineer) ALB created with ARN: ${alb2}`);
-      log('info', `Security group for EMR cluster created with ARN: ${emr}`);
-      log('info', `Security group for RDS metadata created with ARN: ${rds}`);
-      log('info', `Security group for EC2 installing tableau created with ARN: ${tableau}`);
-    });
+  // const { vpc, securityGroups } = configureVpc(env);
+  // pulumi
+  //   .all([
+  //     vpc.vpc.arn,
+  //     securityGroups.alb.arn,
+  //     securityGroups.alb2.arn,
+  //     securityGroups.emr.arn,
+  //     securityGroups.rds.arn,
+  //     securityGroups.tableau.arn
+  //   ])
+  //   .apply(([vpc, alb, alb2, emr, rds, tableau]) => {
+  //     log('info', `Project APP MPDW VPC created with ARN: ${vpc}`);
+  //     log('info', `Security group for standard ALB created with ARN: ${alb}`);
+  //     log('info', `Security group for internal (engineer) ALB created with ARN: ${alb2}`);
+  //     log('info', `Security group for EMR cluster created with ARN: ${emr}`);
+  //     log('info', `Security group for RDS metadata created with ARN: ${rds}`);
+  //     log('info', `Security group for EC2 installing tableau created with ARN: ${tableau}`);
+  //   });
 
   // Create small RDS instance for EMR to store metadata information
-  const rds = configureRds(env, vpc, securityGroups.rds);
+  const rds = configureRds(env);
   rds.arn.apply((rdsArn) => log('info', `RDS for EMR metatdata created with ARN: ${rdsArn}`));
 
   // Create EC2 instance for installation of Tableau
-  const tableau = configureEc2Instance(env, vpc, securityGroups.tableau, roles.tableau);
+  const tableau = configureEc2Instance(env, roles.tableau);
   tableau.arn.apply((ec2Arn) =>
     log('info', `EC2 instance for installing tableau created with ARN: ${ec2Arn}`)
   );
@@ -66,16 +65,16 @@ export const start = () => {
   // const emr = configureEmrCluster(env);
 
   // Create relevant ALBs including respective target groups
-  const albs = configureAlbs({
-    env,
-    albSecurityGroup: securityGroups.alb,
-    albInternalSecurityGroup: securityGroups.alb2,
-    vpc
-  });
-  pulumi.all([albs.internal.arn, albs.external.arn]).apply(([internal, external]) => {
-    log('info', `Internal ALB (engineer) created with ARN: ${internal}`);
-    log('info', `External ALB (http/https) created with ARN: ${external}`);
-  });
+  // const albs = configureAlbs({
+  //   env,
+  //   albSecurityGroup: securityGroups.alb,
+  //   albInternalSecurityGroup: securityGroups.alb2,
+  //   vpc
+  // });
+  // pulumi.all([albs.internal.arn, albs.external.arn]).apply(([internal, external]) => {
+  //   log('info', `Internal ALB (engineer) created with ARN: ${internal}`);
+  //   log('info', `External ALB (http/https) created with ARN: ${external}`);
+  // });
 };
 
 export const testDeploy = () => {
@@ -119,7 +118,7 @@ export const testDeploy = () => {
     });
 
   // Create EC2 instance for installation of Tableau
-  const tableau = configureEc2Instance(env, vpc, securityGroups.tableau, roles.tableau);
+  const tableau = configureEc2Instance(env, roles.tableau);
   tableau.arn.apply((ec2Arn) =>
     log('info', `EC2 instance for installing tableau created with ARN: ${ec2Arn}`)
   );

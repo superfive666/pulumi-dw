@@ -4,12 +4,15 @@ config:
   data-platform:ec2:
     ami: ami-0d70546e43a941d70
     instanceType: r6i.2xlarge
+    subnetId: subnet-xxxxxxxxxxxxxxxxxxx
     userData: |
       # optional install zsh
       sh -c "$(curl -fsSL https://raw.githubusercontent.com/swwl1992/oh-my-zsh/master/tools/install.sh)"
       git clone https://github.com/zsh-users/zsh-syntax-highlighting
       git clone https://github.com/zsh-users/zsh-autosuggestions
       mv zsh-autosuggestions .oh-my-zsh/plugins & mv zsh-syntax-highlighting .oh-my-zsh/plugins
+    vpcSecurityGroupIds:
+      - sg-xxxxxxxxxxxxxxxxxxx
   data-platform:emr:
     ebsRootVolumeSize: 30
     instanceGroups:
@@ -59,6 +62,12 @@ config:
     instanceClass: db.t3.small
     masterUsername: root
     port: 3306
+    subnetIds:
+      - subnet-xxxxxxxxxxxxxxxxxxx
+      - subnet-xxxxxxxxxxxxxxxxxxx
+      - subnet-xxxxxxxxxxxxxxxxxxx
+    vpcSecurityGroupIds:
+      - sg-xxxxxxxxxxxxxxxxxxx
   data-platform:timestamp:
     enable: false
   data-platform:vpc:

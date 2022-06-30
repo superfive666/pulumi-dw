@@ -8,14 +8,11 @@ interface IEc2Config {
   ami: string;
   instanceType: string;
   userData: string;
+  subnetId: string;
+  vpcSecurityGroupIds: string[];
 }
 
-export const configureEc2Instance = (
-  env: string,
-  vpc: awsx.ec2.Vpc,
-  sg: aws.ec2.SecurityGroup,
-  iam: aws.iam.Role
-): aws.ec2.Instance => {
+export const configureEc2Instance = (env: string, iam: aws.iam.Role): aws.ec2.Instance => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
   const timestamp = new Date().toISOString();
@@ -28,12 +25,11 @@ export const configureEc2Instance = (
   };
 
   const config = new pulumi.Config();
-  const { ami, instanceType, userData } = config.requireObject<IEc2Config>('ec2');
+  const { ami, instanceType, userData, subnetId, vpcSecurityGroupIds } =
+    config.requireObject<IEc2Config>('ec2');
 
   const serverName = `app-mpdw-ec2-${env}`;
   const keyName = `app-mpdw-keypairs-${env}`;
-  const subnet = pulumi.output(vpc.publicSubnets);
-  const subnetId = subnet[0].id;
 
   const ebsBlockDevices: input.ec2.InstanceEbsBlockDevice[] = [
     {
@@ -63,14 +59,14 @@ export const configureEc2Instance = (
       instanceType,
       ami,
       keyName,
-      vpcSecurityGroupIds: [sg.id],
+      vpcSecurityGroupIds,
       iamInstanceProfile,
       subnetId,
       ebsBlockDevices,
       userData,
       tags
     },
-    { dependsOn: [vpc, sg, iam, iamInstanceProfile] }
+    { dependsOn: [iam, iamInstanceProfile] }
   );
 
   return server;

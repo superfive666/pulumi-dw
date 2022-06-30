@@ -1,5 +1,4 @@
 import * as aws from '@pulumi/aws';
-import * as awsx from '@pulumi/awsx';
 import * as mysql from '@pulumi/mysql';
 import * as pulumi from '@pulumi/pulumi';
 
@@ -11,13 +10,11 @@ interface IRdsConfig {
   hiveUsername: string;
   iamDatabaseAuthenticationEnabled: boolean;
   instanceClass: string;
+  subnetIds: string[];
+  vpcSecurityGroupIds: string[];
 }
 
-export const configureRds = (
-  env: string,
-  vpc: awsx.ec2.Vpc,
-  sg: aws.ec2.SecurityGroup
-): aws.rds.Instance => {
+export const configureRds = (env: string): aws.rds.Instance => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
   const timestamp = new Date().toISOString();
@@ -37,39 +34,37 @@ export const configureRds = (
     port,
     masterUsername,
     hiveUsername,
-    iamDatabaseAuthenticationEnabled
+    iamDatabaseAuthenticationEnabled,
+    subnetIds,
+    vpcSecurityGroupIds
   } = config.requireObject<IRdsConfig>('rds');
 
   const databaseName = `appmpdwrds${env}`;
   const password = config.requireSecret('masterPassword');
   const hivePassword = config.requireSecret('hivePassword');
 
-  const dbSubnetGroup = createDbSubnetGroup(env, vpc, tags);
+  const dbSubnetGroup = createDbSubnetGroup(env, subnetIds, tags);
   const dbSubnetGroupName = dbSubnetGroup.name;
 
-  const rds = new aws.rds.Instance(
-    databaseName,
-    {
-      name: databaseName,
-      engine,
-      // DB engine version can be explored via the following commands:
-      // aws rds describe-db-engine-versions --engine aurora-postgresql --query '*[].[EngineVersion]' --output text --region us-west-2
-      engineVersion,
+  const rds = new aws.rds.Instance(databaseName, {
+    name: databaseName,
+    engine,
+    // DB engine version can be explored via the following commands:
+    // aws rds describe-db-engine-versions --engine aurora-postgresql --query '*[].[EngineVersion]' --output text --region us-west-2
+    engineVersion,
 
-      vpcSecurityGroupIds: [sg.id],
-      dbSubnetGroupName,
-      instanceClass,
+    vpcSecurityGroupIds,
+    dbSubnetGroupName,
+    instanceClass,
 
-      // Integrate with AWS KMS for key deployment
-      username: masterUsername,
-      password: password.apply((v) => v),
-      port,
-      iamDatabaseAuthenticationEnabled,
+    // Integrate with AWS KMS for key deployment
+    username: masterUsername,
+    password: password.apply((v) => v),
+    port,
+    iamDatabaseAuthenticationEnabled,
 
-      tags
-    },
-    { dependsOn: [sg, vpc] }
-  );
+    tags
+  });
 
   createDbUser(rds, hiveUsername, hivePassword, masterUsername, password);
 
@@ -78,19 +73,15 @@ export const configureRds = (
 
 const createDbSubnetGroup = (
   env: string,
-  vpc: awsx.ec2.Vpc,
+  subnetIds: string[],
   tags: aws.Tags
 ): aws.rds.SubnetGroup => {
   const subnetName = `app-mpdw-dbsn-${env}`;
 
-  const subnet = new aws.rds.SubnetGroup(
-    subnetName,
-    {
-      subnetIds: vpc.privateSubnetIds,
-      tags
-    },
-    { dependsOn: [vpc] }
-  );
+  const subnet = new aws.rds.SubnetGroup(subnetName, {
+    subnetIds,
+    tags
+  });
 
   return subnet;
 };
