@@ -10,12 +10,12 @@ interface IEc2Config {
   userData: string;
 }
 
-export const configureEc2Instance = async (
+export const configureEc2Instance = (
   env: string,
   vpc: awsx.ec2.Vpc,
   sg: aws.ec2.SecurityGroup,
   iam: aws.iam.Role
-): Promise<aws.ec2.Instance> => {
+): aws.ec2.Instance => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
   const timestamp = new Date().toISOString();
@@ -32,8 +32,8 @@ export const configureEc2Instance = async (
 
   const serverName = `app-mpdw-ec2-${env}`;
   const keyName = `app-mpdw-keypairs-${env}`;
-  const subnet = (await vpc.getSubnets('public'))?.[0];
-  const subnetId = subnet.id;
+  const subnet = pulumi.output(vpc.publicSubnets);
+  const subnetId = subnet[0].id;
 
   const ebsBlockDevices: input.ec2.InstanceEbsBlockDevice[] = [
     {
@@ -73,5 +73,5 @@ export const configureEc2Instance = async (
     { dependsOn: [vpc, sg, iam, iamInstanceProfile] }
   );
 
-  return Promise.resolve(server);
+  return server;
 };

@@ -109,13 +109,13 @@ const createVpc = (env: string): awsx.ec2.Vpc => {
   const subnets: awsx.ec2.VpcSubnetArgs[] = [
     {
       type: 'public',
-      name: `app-mpdw-subnet-${env}-public`,
+      name: 'subnet',
       cidrMask: 24,
       tags: baseTags
     },
     {
       type: 'private',
-      name: `app-mpdw-subnet-${env}-private`,
+      name: 'subnet',
       cidrMask: 24,
       tags: baseTags
     }
@@ -223,7 +223,27 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
         {
           ...baseIngressRule(8889, 'Allow internal ALB and Tableau to login to presto service'),
           securityGroups: [alb2.id, tableau.id]
-        }
+        },
+        {
+          ...baseIngressRule(8888, 'Allow internal ALB login to hue service'),
+          securityGroups: [alb2.id]
+        },
+        {
+          ...baseIngressRule(18080, 'Allow internal ALB to spark history server'),
+          securityGroups: [alb2.id]
+        },
+        {
+          ...baseIngressRule(8088, 'Allow internal ALB to yarn service'),
+          securityGroups: [alb2.id]
+        },
+        {
+          ...baseIngressRule(8998, 'Allow internal ALB and Tableau to access Livy service'),
+          securityGroups: [alb2.id, tableau.id]
+        },
+        {
+          ...baseIngressRule(9443, 'Allow internal ALB and Tableau to access jupyter hub'),
+          securityGroups: [alb2.id, tableau.id]
+        },
       ],
       tags: {
         ...baseTags,

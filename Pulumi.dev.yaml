@@ -5,33 +5,11 @@ config:
     ami: ami-0d70546e43a941d70
     instanceType: r6i.2xlarge
     userData: |
-      # grant sudo access for tbladmin
-      sudo adduser tbladmin
-      sudo visudo
-      sudo unlink /etc/localtime
-      sudo ln -s /usr/share/zoneinfo/Asia/Singapore /etc/localtime
-
       # optional install zsh
       sh -c "$(curl -fsSL https://raw.githubusercontent.com/swwl1992/oh-my-zsh/master/tools/install.sh)"
       git clone https://github.com/zsh-users/zsh-syntax-highlighting
       git clone https://github.com/zsh-users/zsh-autosuggestions
       mv zsh-autosuggestions .oh-my-zsh/plugins & mv zsh-syntax-highlighting .oh-my-zsh/plugins
-
-      # installation preparation
-      su - tbladmin
-      sudo apt-get update
-      sudo apt-get install git zsh tmux slapd ldap-utils aria2 gdebi-core zip
-
-      # installation
-      mkdir install && cd install
-      aria2c -s 5 -x 5 https://downloads.tableau.com/esdalt/2022.1.1/tableau-server-2022-1-1_amd64.deb
-      sudo gdebi -n tableau-server-2022-1-1_amd64.deb
-      cd /opt/tableau/tableau_server/packages/scripts.20221.22.0415.114
-      sudo ./initialize-tsm --accepteula
-
-      # logs locations:
-      # /var/opt/tableau/tableau_server/logs/app-install.log
-      # /var/opt/tableau/tableau_server/data/tabsvc/logs/tabadmincontroller/control_tabadmincontroller_node1-0.log
   data-platform:emr:
     ebsRootVolumeSize: 30
     instanceGroups:

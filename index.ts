@@ -12,7 +12,7 @@ export const log = (level: 'info' | 'warning' | 'error', message: string) => {
   console.log(formatted);
 };
 
-export const start = async () => {
+export const start = () => {
   log('info', 'Pulumi deployment started...');
 
   // GLOBAL config variables
@@ -53,11 +53,11 @@ export const start = async () => {
     });
 
   // Create small RDS instance for EMR to store metadata information
-  const rds = await configureRds(env, vpc, securityGroups.rds);
+  const rds = configureRds(env, vpc, securityGroups.rds);
   rds.arn.apply((rdsArn) => log('info', `RDS for EMR metatdata created with ARN: ${rdsArn}`));
 
   // Create EC2 instance for installation of Tableau
-  const tableau = await configureEc2Instance(env, vpc, securityGroups.tableau, roles.tableau);
+  const tableau = configureEc2Instance(env, vpc, securityGroups.tableau, roles.tableau);
   tableau.arn.apply((ec2Arn) =>
     log('info', `EC2 instance for installing tableau created with ARN: ${ec2Arn}`)
   );
@@ -66,7 +66,7 @@ export const start = async () => {
   // const emr = configureEmrCluster(env);
 
   // Create relevant ALBs including respective target groups
-  const albs = await configureAlbs({
+  const albs = configureAlbs({
     env,
     albSecurityGroup: securityGroups.alb,
     albInternalSecurityGroup: securityGroups.alb2,
@@ -78,7 +78,7 @@ export const start = async () => {
   });
 };
 
-export const testDeploy = async () => {
+export const testDeploy = () => {
   log('info', 'Pulumi deployment started...');
 
   // GLOBAL config variables
@@ -119,21 +119,19 @@ export const testDeploy = async () => {
     });
 
   // Create EC2 instance for installation of Tableau
-  const tableau = await configureEc2Instance(env, vpc, securityGroups.tableau, roles.tableau);
+  const tableau = configureEc2Instance(env, vpc, securityGroups.tableau, roles.tableau);
   tableau.arn.apply((ec2Arn) =>
     log('info', `EC2 instance for installing tableau created with ARN: ${ec2Arn}`)
   );
 
-  return Promise.resolve({
+  return {
     s3,
     roles,
     vpc,
     securityGroups,
     tableau
-  });
+  };
 };
 
-export let stacks = {};
-
 // start();
-testDeploy().then((resp) => (stacks = resp));
+export const stacks = testDeploy();

@@ -1,7 +1,7 @@
 import * as aws from '@pulumi/aws';
 import * as awsx from '@pulumi/awsx';
-import * as pulumi from '@pulumi/pulumi';
 import * as mysql from '@pulumi/mysql';
+import * as pulumi from '@pulumi/pulumi';
 
 interface IRdsConfig {
   engine: string;
@@ -13,11 +13,11 @@ interface IRdsConfig {
   instanceClass: string;
 }
 
-export const configureRds = async (
+export const configureRds = (
   env: string,
   vpc: awsx.ec2.Vpc,
   sg: aws.ec2.SecurityGroup
-): Promise<aws.rds.Instance> => {
+): aws.rds.Instance => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
   const timestamp = new Date().toISOString();
@@ -44,7 +44,7 @@ export const configureRds = async (
   const password = config.requireSecret('masterPassword');
   const hivePassword = config.requireSecret('hivePassword');
 
-  const dbSubnetGroup = await createDbSubnetGroup(env, vpc, tags);
+  const dbSubnetGroup = createDbSubnetGroup(env, vpc, tags);
   const dbSubnetGroupName = dbSubnetGroup.name;
 
   const rds = new aws.rds.Instance(
@@ -73,27 +73,26 @@ export const configureRds = async (
 
   createDbUser(rds, hiveUsername, hivePassword, masterUsername, password);
 
-  return Promise.resolve(rds);
+  return rds;
 };
 
-const createDbSubnetGroup = async (
+const createDbSubnetGroup = (
   env: string,
   vpc: awsx.ec2.Vpc,
   tags: aws.Tags
-): Promise<aws.rds.SubnetGroup> => {
+): aws.rds.SubnetGroup => {
   const subnetName = `app-mpdw-dbsn-${env}`;
-  const subnetIds = await vpc.getSubnetsIds('private');
 
   const subnet = new aws.rds.SubnetGroup(
     subnetName,
     {
-      subnetIds,
+      subnetIds: vpc.privateSubnetIds,
       tags
     },
     { dependsOn: [vpc] }
   );
 
-  return Promise.resolve(subnet);
+  return subnet;
 };
 
 const createDbUser = (

@@ -22,21 +22,21 @@ interface IAlbSettings {
   external: aws.lb.LoadBalancer;
 }
 
-export const configureAlbs = async ({
+export const configureAlbs = ({
   env,
   albSecurityGroup,
   albInternalSecurityGroup,
   vpc
-}: IAlbConfigurationProps): Promise<IAlbSettings> => {
-  const internal = await createInternalAlb(env, albInternalSecurityGroup, vpc);
-  const external = await createExternalAlb(env, albSecurityGroup, vpc);
+}: IAlbConfigurationProps): IAlbSettings => {
+  const internal = createInternalAlb(env, albInternalSecurityGroup, vpc);
+  const external = createExternalAlb(env, albSecurityGroup, vpc);
 
   // 1. Create respective target group, `TargetGroup`
   // 2. Create target group attachment for registering instances to the target groups, `TargetGroupAttachment`
   // 3. Create listener for the load balancer, `Listener`
   // 4. Create listener rules for the load balancer, `ListenerRule`
 
-  return Promise.resolve({ internal, external });
+  return { internal, external };
 };
 
 /**
@@ -46,26 +46,25 @@ export const configureAlbs = async ({
  *
  * @param env The pulumi environment key, such as `dev`
  */
-const createInternalAlb = async (
+const createInternalAlb = (
   env: string,
   sg: aws.ec2.SecurityGroup,
   vpc: awsx.ec2.Vpc
-): Promise<aws.lb.LoadBalancer> => {
+): aws.lb.LoadBalancer => {
   const lbName = `data-lb-${env}-internal`;
-  const subnets = await vpc.getSubnetsIds('public');
   const lb = new aws.lb.LoadBalancer(lbName, {
     internal: true,
     loadBalancerType: 'application',
     securityGroups: [sg.arn],
     enableDeletionProtection: true,
-    subnets,
+    subnets: vpc.publicSubnetIds,
     tags: {
       ...baseTags,
       'alb-type': 'internal'
     }
   });
 
-  return Promise.resolve(lb);
+  return lb;
 };
 
 /**
@@ -74,18 +73,17 @@ const createInternalAlb = async (
  *
  * @param env The pulumi environment key, such as `dev`
  */
-const createExternalAlb = async (
+const createExternalAlb = (
   env: string,
   sg: aws.ec2.SecurityGroup,
   vpc: awsx.ec2.Vpc
-): Promise<aws.lb.LoadBalancer> => {
+): aws.lb.LoadBalancer => {
   const lbName = `data-lb-${env}-external`;
-  const subnets = await vpc.getSubnetsIds('public');
   const lb = new aws.lb.LoadBalancer(lbName, {
     internal: true,
     loadBalancerType: 'application',
     securityGroups: [sg.arn],
-    subnets,
+    subnets: vpc.publicSubnetIds,
     enableDeletionProtection: true,
     tags: {
       ...baseTags,
@@ -93,5 +91,5 @@ const createExternalAlb = async (
     }
   });
 
-  return Promise.resolve(lb);
+  return lb;
 };
