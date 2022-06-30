@@ -160,6 +160,12 @@ npm run pulumi:deploy:sit
 # follow the interactive prompts for deployment
 ```
 
+After interactive deployment completed, use the following commands to be able to connect to the `Tableau` instance:
+
+```
+npm run connect:ec2:dev
+```
+
 The following steps are for cleaning up of the entire set of resources:
 
 ```
