@@ -2,9 +2,9 @@ config:
   aws:profile: mpdw-dev
   aws:region: us-west-2
   data-platform:ec2:
-    ami: ami-0d70546e43a941d70 # Canonical, Ubuntu, 22.04 LTS, amd64 jammy image build on 2022-06-09
+    ami: ami-0d70546e43a941d70
     instanceType: r6i.2xlarge
-    userData: > 
+    userData: |
       # grant sudo access for tbladmin
       sudo adduser tbladmin
       sudo visudo
@@ -32,50 +32,49 @@ config:
       # logs locations:
       # /var/opt/tableau/tableau_server/logs/app-install.log
       # /var/opt/tableau/tableau_server/data/tabsvc/logs/tabadmincontroller/control_tabadmincontroller_node1-0.log
-
   data-platform:emr:
     ebsRootVolumeSize: 30
-    scaleDownBehavior: TERMINATE_AT_TASK_COMPLETION 
-    releaseLabel: emr-6.6.0
-    osReleaseLabel: 2.0.20220406.1
     instanceGroups:
-      - InstanceCount: 1 
-        EbsConfiguration:
-          EbsBlockDeviceConfigs:
-            - VolumeSpecification:
-                SizeInGB: 32
-                VolumeType: gp2
-              VolumesPerInstance: 1 
-          EbsOptimized: true,
-        InstanceGroupType: TASK
-        InstanceType: m6g.xlarge
-        Name: Task - 3
-      - InstanceCount: 3 
-        EbsConfiguration:
-          EbsBlockDeviceConfigs:
-            - VolumeSpecification:
-                SizeInGB: 32
-                VolumeType: gp2
-              VolumesPerInstance: 2 
-          EbsOptimized: true,
-        InstanceGroupType: MASTER
-        InstanceType: m5.xlarge 
-        Name: Master - 1
-      - InstanceCount: 1 
-        EbsConfiguration:
-          EbsBlockDeviceConfigs:
-            - VolumeSpecification:
-                SizeInGB: 32
-                VolumeType: gp2
-              VolumesPerInstance: 2 
-          EbsOptimized: true,
-        InstanceGroupType: TASK
-        InstanceType: m6g.xlarge 
-        Name: Core - 2
+    - EbsConfiguration:
+        EbsBlockDeviceConfigs:
+        - VolumeSpecification:
+            SizeInGB: 32
+            VolumeType: gp2
+          VolumesPerInstance: 1
+        EbsOptimized: true,
+      InstanceCount: 1
+      InstanceGroupType: TASK
+      InstanceType: m6g.xlarge
+      Name: Task - 3
+    - EbsConfiguration:
+        EbsBlockDeviceConfigs:
+        - VolumeSpecification:
+            SizeInGB: 32
+            VolumeType: gp2
+          VolumesPerInstance: 2
+        EbsOptimized: true,
+      InstanceCount: 3
+      InstanceGroupType: MASTER
+      InstanceType: m5.xlarge
+      Name: Master - 1
+    - EbsConfiguration:
+        EbsBlockDeviceConfigs:
+        - VolumeSpecification:
+            SizeInGB: 32
+            VolumeType: gp2
+          VolumesPerInstance: 2
+        EbsOptimized: true,
+      InstanceCount: 1
+      InstanceGroupType: TASK
+      InstanceType: m6g.xlarge
+      Name: Core - 2
+    osReleaseLabel: 2.0.20220406.1
+    releaseLabel: emr-6.6.0
+    scaleDownBehavior: TERMINATE_AT_TASK_COMPLETION
   data-platform:hivePassword:
     secure: AAABANLkxlhsXpRA3WSkfWW8krtaxBuHG1hThTno3a5DnJ1RKSedMLX5V4eJ6VA=
   data-platform:masterPassword:
-    secure: AAABAHcJ6MXWmIPoczL9VIyz/TBUFaUHIVWorquadJSzc4Ubwys3PED3U6x2tCI=
+    secure: AAABAP/cu2lGeFNYa1au9zPcRL1A9HmT/fZ+R5pVSAht+59DK0eF823LJNv8xx8=
   data-platform:rds:
     engine: aurora-mysql
     engineVersion: 5.7.mysql_aurora.2.10.2
@@ -84,8 +83,8 @@ config:
     instanceClass: db.t3.small
     masterUsername: root
     port: 3306
+  data-platform:timestamp:
+    enable: false
   data-platform:vpc:
     numberOfAvailabilityZones: 2
     numberOfNatGateways: 1
-  data-platform:timestamp:
-    enable: false
