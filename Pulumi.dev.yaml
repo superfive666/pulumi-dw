@@ -43,16 +43,14 @@ config:
           VolumesPerInstance: 2
         EbsOptimized: true,
       InstanceCount: 1
-      InstanceGroupType: TASK
+      InstanceGroupType: CORE
       InstanceType: m6g.xlarge
       Name: Core - 2
     osReleaseLabel: 2.0.20220406.1
     releaseLabel: emr-6.6.0
     scaleDownBehavior: TERMINATE_AT_TASK_COMPLETION
-  data-platform:hivePassword:
-    secure: AAABANLkxlhsXpRA3WSkfWW8krtaxBuHG1hThTno3a5DnJ1RKSedMLX5V4eJ6VA=
   data-platform:masterPassword:
-    secure: AAABAP/cu2lGeFNYa1au9zPcRL1A9HmT/fZ+R5pVSAht+59DK0eF823LJNv8xx8=
+    secure: AAABAOAv7Hw6Dcli89vKtP1n/Y+8RLhGdU4qvayjNLlYJNb5tV35OhYm2rsdZ88=
   data-platform:rds:
     engine: aurora-mysql
     engineVersion: 5.7.mysql_aurora.2.10.2

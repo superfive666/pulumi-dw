@@ -80,7 +80,7 @@ const createVpc = (env: string): awsx.ec2.Vpc => {
   const config = new pulumi.Config();
 
   const vpcName = `app-mpdw-vpc-${env}`;
-  const cidrBlock = '10.1.0.0/16';
+  const cidrBlock = '10.54.96.0/19';
   log('info', `Creating project VPC named: ${vpcName} and CIDR block: ${cidrBlock}`);
 
   const { numberOfAvailabilityZones, numberOfNatGateways } =
