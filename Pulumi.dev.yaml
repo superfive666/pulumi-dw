@@ -32,9 +32,9 @@ config:
       name: Core - 2
     ebsRootVolumeSize: 30
     ec2Attributes:
-      emrManagedMasterSecurityGroup: sg-02fcb5447cc8f4b8d
-      emrManagedSlaveSecurityGroup: sg-02fcb5447cc8f4b8d
-      serviceAccessSecurityGroup: sg-02c3ffb766f1e8301
+      emrManagedMasterSecurityGroup: sg-00fc9697ed311b669
+      emrManagedSlaveSecurityGroup: sg-0368e42255228267e
+      serviceAccessSecurityGroup: sg-02fcb5447cc8f4b8d
       subnetIds:
       - subnet-019760772ede081b8
     masterInstanceGroup:

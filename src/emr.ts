@@ -77,7 +77,7 @@ export const configureEmrCluster = (
       // EMR config
       applications,
       releaseLabel,
-      serviceRole: iam.name,
+      serviceRole: 'EMR_DefaultRole',
       scaleDownBehavior,
       configurationsJson,
       logUri: pulumi.interpolate`s3://${s3.id}/${emrClusterName}/logs`,

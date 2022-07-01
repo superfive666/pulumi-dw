@@ -127,15 +127,8 @@ const createEmrPolicy = (arn: string): aws.iam.Policy => {
         {
           Effect: 'Allow',
           Action: [
-            'ec2:DeleteLaunchTemplate',
-            'ec2:CreateLaunchTemplate',
-            'ec2:DescribeLaunchTemplates',
-            'ec2:CreateLaunchTemplateVersion',
-            'ec2:CreateFleet',
             // to use targeted capacity reservations, you must include the following additional permissions
-            'ec2:DescribeCapacityReservations',
-            'ec2:DescribeLaunchTemplateVersions',
-            'ec2:DeleteLaunchTemplateVersions',
+            'ec2:*',
             'resource-groups:ListGroupResources'
           ],
           Resource: '*'

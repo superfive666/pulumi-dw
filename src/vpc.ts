@@ -10,6 +10,8 @@ interface IVpcSecurityGroupSettings {
   alb: aws.ec2.SecurityGroup;
   alb2: aws.ec2.SecurityGroup;
   emr: aws.ec2.SecurityGroup;
+  emrSlave: aws.ec2.SecurityGroup;
+  emrMaster: aws.ec2.SecurityGroup;
   rds: aws.ec2.SecurityGroup;
   tableau: aws.ec2.SecurityGroup;
 }
@@ -178,7 +180,6 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
     { dependsOn: [vpc] }
   );
 
-
   const tableau = new aws.ec2.SecurityGroup(
     `${baseName}-${env}-tableau`,
     {
@@ -217,34 +218,39 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
     {
       name: `${baseName}-${env}-emr`,
       vpcId: vpc.id,
-      description: `Security group for EMR resource ${timestamp}`,
+      description: `Security group for EMR service ${timestamp}`,
       // allow access from tableau and internal ALB
-      ingress: [
-        {
-          ...baseIngressRule(8889, 'Allow internal ALB and Tableau to login to presto service'),
-          securityGroups: [alb2.id, tableau.id]
-        },
-        {
-          ...baseIngressRule(8888, 'Allow internal ALB login to hue service'),
-          securityGroups: [alb2.id]
-        },
-        {
-          ...baseIngressRule(18080, 'Allow internal ALB to spark history server'),
-          securityGroups: [alb2.id]
-        },
-        {
-          ...baseIngressRule(8088, 'Allow internal ALB to yarn service'),
-          securityGroups: [alb2.id]
-        },
-        {
-          ...baseIngressRule(8998, 'Allow internal ALB and Tableau to access Livy service'),
-          securityGroups: [alb2.id, tableau.id]
-        },
-        {
-          ...baseIngressRule(9443, 'Allow internal ALB and Tableau to access jupyter hub'),
-          securityGroups: [alb2.id, tableau.id]
-        },
-      ],
+      ingress: [],
+      tags: {
+        ...baseTags,
+        purpose: 'emr'
+      },
+      egress
+    },
+    { dependsOn: [vpc, alb, alb2, tableau] }
+  );
+
+  const emrMaster = new aws.ec2.SecurityGroup(
+    `${baseName}-${env}-emr-master`,
+    {
+      name: `${baseName}-${env}-emr-master`,
+      vpcId: vpc.id,
+      description: `Security group for EMR master ${timestamp}`,
+      tags: {
+        ...baseTags,
+        purpose: 'emr'
+      },
+      egress
+    },
+    { dependsOn: [vpc, alb2, tableau] }
+  );
+
+  const emrSlave = new aws.ec2.SecurityGroup(
+    `${baseName}-${env}-emr-slave`,
+    {
+      name: `${baseName}-${env}-emr-slave`,
+      vpcId: vpc.id,
+      description: `Security group for EMR service ${timestamp}`,
       tags: {
         ...baseTags,
         purpose: 'emr'
@@ -278,5 +284,5 @@ const createSecurityGroups = (env: string, vpc: awsx.ec2.Vpc): IVpcSecurityGroup
     }
   );
 
-  return { alb, alb2, emr, rds, tableau };
+  return { alb, alb2, emr, emrSlave, emrMaster, rds, tableau };
 };
