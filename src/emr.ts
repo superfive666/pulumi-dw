@@ -59,6 +59,8 @@ export const configureEmrCluster = (
   const emr = new aws.emr.Cluster(
     emrClusterName,
     {
+      name: emrClusterName,
+
       // EMR config
       applications,
       releaseLabel,
