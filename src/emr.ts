@@ -45,18 +45,20 @@ export const configureEmrCluster = (
   const keyName = `app-mpdw-keypairs-${env}`;
   const password = config.requireSecret('masterPassword');
 
-  const configurationsJson = JSON.stringify([
-    {
-      Classification: 'hive-site',
-      Properties: {
-        'javax.jdo.option.ConnectionURL': pulumi.interpolate`jdbc:mysql://${rds.endpoint}/hive?createDatabaseIfNotExist=true`,
-        'javax.jdo.option.ConnectionDriverName': 'org.mariadb.jdbc.Driver',
-        'javax.jdo.option.ConnectionUserName': 'root',
-        'javax.jdo.option.ConnectionPassword': password,
-        'hive.blobstore.use.output-committer': 'true'
+  const configurationsJson = pulumi
+    .output([
+      {
+        Classification: 'hive-site',
+        Properties: {
+          'javax.jdo.option.ConnectionURL': pulumi.interpolate`jdbc:mysql://${rds.endpoint}/hive?createDatabaseIfNotExist=true`,
+          'javax.jdo.option.ConnectionDriverName': 'org.mariadb.jdbc.Driver',
+          'javax.jdo.option.ConnectionUserName': 'root',
+          'javax.jdo.option.ConnectionPassword': password,
+          'hive.blobstore.use.output-committer': 'true'
+        }
       }
-    }
-  ]);
+    ])
+    .apply((v) => JSON.stringify(v));
 
   const profileName = 'APP_MPDW_MER_INSTANCE_PROFILE';
   const instanceProfile = new aws.iam.InstanceProfile(
