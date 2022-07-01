@@ -4,6 +4,7 @@ import { configureVpc } from './src/vpc';
 import { configureRds } from './src/rds';
 import { configureS3Bucket } from './src/s3';
 import { configureIamRoles } from './src/iam';
+import { configureEmrCluster } from './src/emr';
 import { configureEc2Instance } from './src/ec2';
 
 export const log = (level: 'info' | 'warning' | 'error', message: string) => {
@@ -69,9 +70,14 @@ export const start = () => {
     log('info', `EC2 instance for installing tableau created with ARN: ${ec2Arn}`)
   );
 
+  // Create EMR cluster
+  const emr = configureEmrCluster(env, roles.emr, rds, s3);
+  emr.arn.apply((emrArn) => log('info', `EMR cluster created with ARN: ${emrArn}`));
+
   return {
     s3,
     roles,
+    emr,
     rds,
     tableau
   };

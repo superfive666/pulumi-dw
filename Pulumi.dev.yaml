@@ -12,46 +12,45 @@ config:
       git clone https://github.com/zsh-users/zsh-autosuggestions
       mv zsh-autosuggestions .oh-my-zsh/plugins & mv zsh-syntax-highlighting .oh-my-zsh/plugins
     vpcSecurityGroupIds:
-      - sg-xxxxxxxxxxxxxxxxxxx
+    - sg-xxxxxxxxxxxxxxxxxxx
   data-platform:emr:
+    applications:
+    - Hadoop
+    - Hive
+    - Hue
+    - Presto
+    - Livy
+    - Sqoop
+    - JupyterHub
+    - Spark
+    - JupyterEnterpriseGateway
+    coreInstanceGroup:
+      ebsConfigs:
+      - size: 32
+        type: gp2
+        volumesPerInstance: 2
+      instanceCount: 1
+      instanceType: m6g.xlarge
+      name: Core - 2
     ebsRootVolumeSize: 30
-    instanceGroups:
-    - EbsConfiguration:
-        EbsBlockDeviceConfigs:
-        - VolumeSpecification:
-            SizeInGB: 32
-            VolumeType: gp2
-          VolumesPerInstance: 1
-        EbsOptimized: true,
-      InstanceCount: 1
-      InstanceGroupType: TASK
-      InstanceType: m6g.xlarge
-      Name: Task - 3
-    - EbsConfiguration:
-        EbsBlockDeviceConfigs:
-        - VolumeSpecification:
-            SizeInGB: 32
-            VolumeType: gp2
-          VolumesPerInstance: 2
-        EbsOptimized: true,
-      InstanceCount: 3
-      InstanceGroupType: MASTER
-      InstanceType: m5.xlarge
-      Name: Master - 1
-    - EbsConfiguration:
-        EbsBlockDeviceConfigs:
-        - VolumeSpecification:
-            SizeInGB: 32
-            VolumeType: gp2
-          VolumesPerInstance: 2
-        EbsOptimized: true,
-      InstanceCount: 1
-      InstanceGroupType: CORE
-      InstanceType: m6g.xlarge
-      Name: Core - 2
+    ec2Attributes:
+      subnetIds:
+      - subnet-xxxxxxxxxxxxxxxxxxx
+      - subnet-xxxxxxxxxxxxxxxxxxx
+      - subnet-xxxxxxxxxxxxxxxxxxx
+    masterInstanceGroup:
+      ebsConfigs:
+      - size: 32
+        type: gp2
+        volumesPerInstance: 2
+      instanceCount: 3
+      instanceType: m5.xlarge
+      name: Master - 1
     osReleaseLabel: 2.0.20220406.1
     releaseLabel: emr-6.6.0
     scaleDownBehavior: TERMINATE_AT_TASK_COMPLETION
+  data-platform:hivePassword:
+    secure: AAABAIkrLiByASONhHqvovl0nMwmNbpHfNbRHksdoxrA0aNrPfCB7Sx9DjK/GqQ=
   data-platform:masterPassword:
     secure: AAABAOAv7Hw6Dcli89vKtP1n/Y+8RLhGdU4qvayjNLlYJNb5tV35OhYm2rsdZ88=
   data-platform:rds:
@@ -63,11 +62,11 @@ config:
     masterUsername: root
     port: 3306
     subnetIds:
-      - subnet-xxxxxxxxxxxxxxxxxxx
-      - subnet-xxxxxxxxxxxxxxxxxxx
-      - subnet-xxxxxxxxxxxxxxxxxxx
+    - subnet-xxxxxxxxxxxxxxxxxxx
+    - subnet-xxxxxxxxxxxxxxxxxxx
+    - subnet-xxxxxxxxxxxxxxxxxxx
     vpcSecurityGroupIds:
-      - sg-xxxxxxxxxxxxxxxxxxx
+    - sg-xxxxxxxxxxxxxxxxxxx
   data-platform:timestamp:
     enable: false
   data-platform:vpc:

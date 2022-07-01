@@ -1,39 +1,24 @@
 import * as aws from '@pulumi/aws';
-import * as awsx from '@pulumi/awsx';
 import * as pulumi from '@pulumi/pulumi';
 
-type EbsVolumeType = 'gp2' | 'gp3' | 'io1' | 'io2';
-
-interface IEbsBlockDeviceConfig {
-  VolumeSpecification: { SizeInGB: number; VolumeType: EbsVolumeType }[];
-  VolumesPerInstance: number;
-}
-
-interface IEbsConfiguration {
-  EbsBlockDeviceConfigs: IEbsBlockDeviceConfig[];
-  EbsOptimized: boolean;
-}
-
-interface IInstanceGroup {
-  EbsConfiguration: IEbsConfiguration[];
-  InstanceCount: number;
-  InstanceGroupType: 'TASK' | 'MASTER' | 'CORE';
-  InstanceType: string;
-  Name: string;
-}
+import { input } from '@pulumi/aws/types';
 
 interface IEmrSettings {
+  applications: string[];
   ebsRootVolumeSize: number;
-  instanceGroups: IInstanceGroup[];
   osReleaseLabel: string;
   releaseLabel: string;
   scaleDownBehavior: string;
+  coreInstanceGroup: input.emr.ClusterCoreInstanceGroup;
+  masterInstanceGroup: input.emr.ClusterMasterInstanceGroup;
+  ec2Attributes: input.emr.ClusterEc2Attributes;
 }
 
 export const configureEmrCluster = (
   env: string,
-  vpc: awsx.ec2.Vpc,
-  rds: aws.rds.Instance
+  iam: aws.iam.Role,
+  rds: aws.rds.Instance,
+  s3: aws.s3.Bucket
 ): aws.emr.Cluster => {
   const config = new pulumi.Config();
   const pulumiProject = pulumi.getProject();
@@ -47,18 +32,53 @@ export const configureEmrCluster = (
     timestamp
   };
   const {
-    ebsRootVolumeSize = 30,
-    instanceGroups,
-    osReleaseLabel,
+    applications,
+    scaleDownBehavior = 'TERMINATE_AT_TASK_COMPLETION',
     releaseLabel,
-    scaleDownBehavior = 'TERMINATE_AT_TASK_COMPLETION'
+    ebsRootVolumeSize,
+    coreInstanceGroup,
+    masterInstanceGroup,
+    ec2Attributes
   } = config.requireObject<IEmrSettings>('emr');
 
   const emrClusterName = `app-mpdw-emr-${env}`;
+  const keyName = `app-mpdw-keypairs-${env}`;
+  const password = config.requireSecret('hivePassword');
+  const configurationsJson = JSON.stringify({
+    Classification: 'hive-site',
+    Properties: {
+      'javax.jdo.option.ConnectionURL': `jdbc:mysql://${rds.endpoint}/hive?createDatabaseIfNotExist=true`,
+      'javax.jdo.option.ConnectionDriverName': 'org.mariadb.jdbc.Driver',
+      'javax.jdo.option.ConnectionUserName': 'hive',
+      'javax.jdo.option.ConnectionPassword': pulumi.interpolate`${password}`,
+      'hive.blobstore.use.output-committer': 'true'
+    }
+  });
 
-  const emr = new aws.emr.Cluster(emrClusterName, {
-    tags
-  }, { dependsOn: [vpc, rds] });
+  const emr = new aws.emr.Cluster(
+    emrClusterName,
+    {
+      // EMR config
+      applications,
+      releaseLabel,
+      serviceRole: iam.name,
+      scaleDownBehavior,
+      configurationsJson,
+      logUri: `${s3.arn}/${emrClusterName}/logs`,
+
+      // EC2 nodes
+      ebsRootVolumeSize,
+      masterInstanceGroup,
+      coreInstanceGroup,
+      ec2Attributes: {
+        ...ec2Attributes,
+        keyName
+      },
+
+      tags
+    },
+    { dependsOn: [rds, iam, s3] }
+  );
 
   return emr;
 };
