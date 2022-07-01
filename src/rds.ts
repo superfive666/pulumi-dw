@@ -5,6 +5,7 @@ import * as pulumi from '@pulumi/pulumi';
 interface IRdsConfig {
   engine: string;
   engineVersion: string;
+  allocatedStorage: number;
   port: number;
   masterUsername: string;
   hiveUsername: string;
@@ -33,6 +34,7 @@ export const configureRds = (env: string): aws.rds.Instance => {
     engineVersion,
     port,
     masterUsername,
+    allocatedStorage,
     hiveUsername,
     iamDatabaseAuthenticationEnabled,
     subnetIds,
@@ -54,6 +56,7 @@ export const configureRds = (env: string): aws.rds.Instance => {
     engineVersion,
 
     vpcSecurityGroupIds,
+    allocatedStorage,
     dbSubnetGroupName,
     instanceClass,
 

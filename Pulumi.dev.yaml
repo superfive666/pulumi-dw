@@ -56,6 +56,7 @@ config:
   data-platform:masterPassword:
     secure: AAABAOAv7Hw6Dcli89vKtP1n/Y+8RLhGdU4qvayjNLlYJNb5tV35OhYm2rsdZ88=
   data-platform:rds:
+    allocatedStorage: 30
     engine: aurora-mysql
     engineVersion: 5.7.mysql_aurora.2.10.2
     hiveUsername: hive
