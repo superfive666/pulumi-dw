@@ -47,7 +47,7 @@ export const configureRds = (env: string): aws.rds.Instance => {
   const dbSubnetGroupName = dbSubnetGroup.name;
 
   const rds = new aws.rds.Instance(databaseName, {
-    name: databaseName,
+    dbName: databaseName,
     engine,
     // DB engine version can be explored via the following commands:
     // aws rds describe-db-engine-versions --engine aurora-postgresql --query '*[].[EngineVersion]' --output text --region us-west-2
