@@ -44,6 +44,7 @@ export const configureEmrCluster = (
   const emrClusterName = `app-mpdw-emr-${env}`;
   const keyName = `app-mpdw-keypairs-${env}`;
   const password = config.requireSecret('hivePassword');
+  const instanceProfile = iam.name;
   const configurationsJson = JSON.stringify({
     Classification: 'hive-site',
     Properties: {
@@ -61,10 +62,10 @@ export const configureEmrCluster = (
       // EMR config
       applications,
       releaseLabel,
-      serviceRole: iam.name,
+      serviceRole: instanceProfile,
       scaleDownBehavior,
       configurationsJson,
-      logUri: `${s3.arn}/${emrClusterName}/logs`,
+      logUri: `s3://${s3.id}/${emrClusterName}/logs`,
 
       // EC2 nodes
       ebsRootVolumeSize,
@@ -72,7 +73,8 @@ export const configureEmrCluster = (
       coreInstanceGroup,
       ec2Attributes: {
         ...ec2Attributes,
-        keyName
+        keyName,
+        instanceProfile
       },
 
       tags

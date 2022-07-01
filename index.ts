@@ -13,9 +13,7 @@ export const log = (level: 'info' | 'warning' | 'error', message: string) => {
 };
 
 export const createVpc = () => {
-  // GLOBAL config variables
-  const env = pulumi.getStack();
-  log('info', `Current pulumi environment building is ${env}`);
+  const env = 'dev';
 
   // Create required VPC for the data-platform
   const { vpc, securityGroups } = configureVpc(env);
@@ -40,12 +38,8 @@ export const createVpc = () => {
   return { vpc, securityGroups };
 };
 
-export const start = () => {
+export const start = (env: string) => {
   log('info', 'Pulumi deployment started...');
-
-  // GLOBAL config variables
-  const env = pulumi.getStack();
-  log('info', `Current pulumi environment building is ${env}`);
 
   // Create the S3 bucket for EMR to store necessary HDFS files
   const s3 = configureS3Bucket(env);
@@ -83,4 +77,8 @@ export const start = () => {
   };
 };
 
-export const stacks = start();
+// GLOBAL config variables
+const env = pulumi.getStack();
+log('info', `Current pulumi environment building is ${env}`);
+
+export const stacks = env === 'vpc' ? createVpc() : start(env);

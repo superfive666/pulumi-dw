@@ -1,0 +1,8 @@
+config:
+  aws:profile: mpdw-dev
+  aws:region: us-west-2
+  # This stack is only for DEV testing creating VPC and Security Groups
+  # The created configurations will be applied to Pulumi.dev.yaml
+  data-platform:vpc:
+    numberOfAvailabilityZones: 2
+    numberOfNatGateways: 1

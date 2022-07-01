@@ -4,7 +4,7 @@ config:
   data-platform:ec2:
     ami: ami-0d70546e43a941d70
     instanceType: r6i.2xlarge
-    subnetId: subnet-xxxxxxxxxxxxxxxxxxx
+    subnetId: subnet-0bbba0d8653ee85e9
     userData: |
       # optional install zsh
       sh -c "$(curl -fsSL https://raw.githubusercontent.com/swwl1992/oh-my-zsh/master/tools/install.sh)"
@@ -12,7 +12,7 @@ config:
       git clone https://github.com/zsh-users/zsh-autosuggestions
       mv zsh-autosuggestions .oh-my-zsh/plugins & mv zsh-syntax-highlighting .oh-my-zsh/plugins
     vpcSecurityGroupIds:
-    - sg-xxxxxxxxxxxxxxxxxxx
+    - sg-02c3ffb766f1e8301 
   data-platform:emr:
     applications:
     - Hadoop
@@ -35,9 +35,11 @@ config:
     ebsRootVolumeSize: 30
     ec2Attributes:
       subnetIds:
-      - subnet-xxxxxxxxxxxxxxxxxxx
-      - subnet-xxxxxxxxxxxxxxxxxxx
-      - subnet-xxxxxxxxxxxxxxxxxxx
+      - subnet-019760772ede081b8 
+      - subnet-094f459d6b3fb92b6
+      emrManagedMasterSecurityGroup: sg-02fcb5447cc8f4b8d 
+      emrManagedSlaveSecurityGroup: sg-02fcb5447cc8f4b8d
+      serviceAccessSecurityGroup: sg-02fcb5447cc8f4b8d
     masterInstanceGroup:
       ebsConfigs:
       - size: 32
@@ -62,11 +64,10 @@ config:
     masterUsername: root
     port: 3306
     subnetIds:
-    - subnet-xxxxxxxxxxxxxxxxxxx
-    - subnet-xxxxxxxxxxxxxxxxxxx
-    - subnet-xxxxxxxxxxxxxxxxxxx
+    - subnet-019760772ede081b8 
+    - subnet-094f459d6b3fb92b6
     vpcSecurityGroupIds:
-    - sg-xxxxxxxxxxxxxxxxxxx
+    - sg-0fa1836526856ba5f 
   data-platform:timestamp:
     enable: false
   data-platform:vpc:
