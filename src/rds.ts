@@ -1,11 +1,11 @@
 import * as aws from '@pulumi/aws';
-import * as mysql from '@pulumi/mysql';
 import * as pulumi from '@pulumi/pulumi';
 
 interface IRdsConfig {
   engine: string;
   engineVersion: string;
   allocatedStorage: number;
+  storageType: string;
   port: number;
   masterUsername: string;
   hiveUsername: string;
@@ -15,7 +15,11 @@ interface IRdsConfig {
   vpcSecurityGroupIds: string[];
 }
 
-export const configureRds = (env: string): aws.rds.Instance => {
+interface IRdsConfigSettings {
+  rds: aws.rds.Instance;
+}
+
+export const configureRds = (env: string): IRdsConfigSettings => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
   const timestamp = new Date().toISOString();
@@ -35,7 +39,7 @@ export const configureRds = (env: string): aws.rds.Instance => {
     port,
     masterUsername,
     allocatedStorage,
-    hiveUsername,
+    storageType,
     iamDatabaseAuthenticationEnabled,
     subnetIds,
     vpcSecurityGroupIds
@@ -43,7 +47,6 @@ export const configureRds = (env: string): aws.rds.Instance => {
 
   const databaseName = `appmpdwrds${env}`;
   const password = config.requireSecret('masterPassword');
-  const hivePassword = config.requireSecret('hivePassword');
 
   const dbSubnetGroup = createDbSubnetGroup(env, subnetIds, tags);
   const dbSubnetGroupName = dbSubnetGroup.name;
@@ -57,21 +60,20 @@ export const configureRds = (env: string): aws.rds.Instance => {
 
     vpcSecurityGroupIds,
     allocatedStorage,
+    storageType,
     dbSubnetGroupName,
     instanceClass,
 
     // Integrate with AWS KMS for key deployment
     username: masterUsername,
-    password: password.apply((v) => v),
+    password: password,
     port,
     iamDatabaseAuthenticationEnabled,
 
     tags
   });
 
-  createDbUser(rds, hiveUsername, hivePassword, masterUsername, password);
-
-  return rds;
+  return { rds };
 };
 
 const createDbSubnetGroup = (
@@ -87,46 +89,4 @@ const createDbSubnetGroup = (
   });
 
   return subnet;
-};
-
-const createDbUser = (
-  rds: aws.rds.Instance,
-  hiveUsername: string,
-  hivePassword: pulumi.Output<string>,
-  masterUsername: string,
-  masterPassword: pulumi.Output<string>
-): void => {
-  const provider = new mysql.Provider('mysql', {
-    endpoint: rds.endpoint,
-    username: masterUsername,
-    password: masterPassword.apply((v) => v)
-  });
-
-  const databaseName = 'hive';
-  const database = new mysql.Database(
-    databaseName,
-    {
-      name: databaseName
-    },
-    { provider, dependsOn: [rds, provider] }
-  );
-
-  const user = new mysql.User(
-    hiveUsername,
-    {
-      user: hiveUsername,
-      plaintextPassword: hivePassword.apply((v) => v)
-    },
-    { provider, dependsOn: [rds, database, provider] }
-  );
-
-  new mysql.Grant(
-    hiveUsername,
-    {
-      user: user.user,
-      database: database.name,
-      privileges: ['select', 'insert', 'update', 'delete']
-    },
-    { provider, dependsOn: [user, rds, database, provider] }
-  );
 };

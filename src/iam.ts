@@ -46,7 +46,9 @@ export const configureIamRoles = (s3: aws.s3.Bucket): IIamRoleSettings => {
       { dependsOn: [s3] }
     );
 
-    attachTableau.id.apply((v) => log('info', `Role access policies attached APP_MPDW_TABLEAU_ROLE: ${v}`));
+    attachTableau.id.apply((v) =>
+      log('info', `Role access policies attached APP_MPDW_TABLEAU_ROLE: ${v}`)
+    );
   });
 
   return { emr, tableau };
@@ -62,6 +64,20 @@ const instanceAssumePolicy = aws.iam.getPolicyDocument({
           identifiers: ['ec2.amazonaws.com']
         }
       ]
+    }
+  ]
+});
+
+const instanceEmrAssumePolicy = aws.iam.getPolicyDocument({
+  statements: [
+    {
+      principals: [
+        {
+          type: 'Service',
+          identifiers: ['elasticmapreduce.amazonaws.com']
+        }
+      ],
+      actions: ['sts:AssumeRole']
     }
   ]
 });
@@ -134,7 +150,7 @@ const createEmrPolicy = (arn: string): aws.iam.Policy => {
 const createEmrRole = (): aws.iam.Role => {
   const roleName = 'APP_MPDW_EMR_ROLE';
   const role = new aws.iam.Role(roleName, {
-    assumeRolePolicy: instanceAssumePolicy.then((policy) => policy.json),
+    assumeRolePolicy: instanceEmrAssumePolicy.then((policy) => policy.json),
     tags: {
       ...baseTags,
       purpose: 'emr'

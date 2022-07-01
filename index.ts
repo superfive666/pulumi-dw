@@ -55,7 +55,7 @@ export const start = (env: string) => {
   });
 
   // Create small RDS instance for EMR to store metadata information
-  const rds = configureRds(env);
+  const { rds } = configureRds(env);
   rds.arn.apply((rdsArn) => log('info', `RDS for EMR metatdata created with ARN: ${rdsArn}`));
 
   // Create EC2 instance for installation of Tableau

@@ -12,18 +12,16 @@ config:
       git clone https://github.com/zsh-users/zsh-autosuggestions
       mv zsh-autosuggestions .oh-my-zsh/plugins & mv zsh-syntax-highlighting .oh-my-zsh/plugins
     vpcSecurityGroupIds:
-    - sg-02c3ffb766f1e8301 
+    - sg-02c3ffb766f1e8301
   data-platform:emr:
     applications:
     - Hadoop
     - Hive
-    - Hue
     - Presto
     - Livy
     - Sqoop
     - JupyterHub
     - Spark
-    - JupyterEnterpriseGateway
     coreInstanceGroup:
       ebsConfigs:
       - size: 32
@@ -34,12 +32,11 @@ config:
       name: Core - 2
     ebsRootVolumeSize: 30
     ec2Attributes:
-      subnetIds:
-      - subnet-019760772ede081b8 
-      - subnet-094f459d6b3fb92b6
-      emrManagedMasterSecurityGroup: sg-02fcb5447cc8f4b8d 
+      emrManagedMasterSecurityGroup: sg-02fcb5447cc8f4b8d
       emrManagedSlaveSecurityGroup: sg-02fcb5447cc8f4b8d
-      serviceAccessSecurityGroup: sg-02fcb5447cc8f4b8d
+      serviceAccessSecurityGroup: sg-02c3ffb766f1e8301
+      subnetIds:
+      - subnet-019760772ede081b8
     masterInstanceGroup:
       ebsConfigs:
       - size: 32
@@ -51,24 +48,22 @@ config:
     osReleaseLabel: 2.0.20220406.1
     releaseLabel: emr-6.6.0
     scaleDownBehavior: TERMINATE_AT_TASK_COMPLETION
-  data-platform:hivePassword:
-    secure: AAABAIkrLiByASONhHqvovl0nMwmNbpHfNbRHksdoxrA0aNrPfCB7Sx9DjK/GqQ=
   data-platform:masterPassword:
-    secure: AAABAOAv7Hw6Dcli89vKtP1n/Y+8RLhGdU4qvayjNLlYJNb5tV35OhYm2rsdZ88=
+    secure: AAABAIdpqrGuFPkLTML/LIyEnwb1sEzfIJD/+jruHFys5YeXylS2rXsmA8Sa0Mk=
   data-platform:rds:
     allocatedStorage: 30
-    engine: aurora-mysql
-    engineVersion: 5.7.mysql_aurora.2.10.2
-    hiveUsername: hive
+    storageType: gp2
+    engine: mysql
+    engineVersion: 8.0.29
     iamDatabaseAuthenticationEnabled: true
     instanceClass: db.t3.small
     masterUsername: root
     port: 3306
     subnetIds:
-    - subnet-019760772ede081b8 
+    - subnet-019760772ede081b8
     - subnet-094f459d6b3fb92b6
     vpcSecurityGroupIds:
-    - sg-0fa1836526856ba5f 
+    - sg-0fa1836526856ba5f
   data-platform:timestamp:
     enable: false
   data-platform:vpc:

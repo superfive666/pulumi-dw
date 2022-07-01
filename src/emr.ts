@@ -43,18 +43,31 @@ export const configureEmrCluster = (
 
   const emrClusterName = `app-mpdw-emr-${env}`;
   const keyName = `app-mpdw-keypairs-${env}`;
-  const password = config.requireSecret('hivePassword');
-  const instanceProfile = iam.name;
-  const configurationsJson = JSON.stringify({
-    Classification: 'hive-site',
-    Properties: {
-      'javax.jdo.option.ConnectionURL': `jdbc:mysql://${rds.endpoint}/hive?createDatabaseIfNotExist=true`,
-      'javax.jdo.option.ConnectionDriverName': 'org.mariadb.jdbc.Driver',
-      'javax.jdo.option.ConnectionUserName': 'hive',
-      'javax.jdo.option.ConnectionPassword': pulumi.interpolate`${password}`,
-      'hive.blobstore.use.output-committer': 'true'
+  const password = config.requireSecret('masterPassword');
+
+  const configurationsJson = JSON.stringify([
+    {
+      Classification: 'hive-site',
+      Properties: {
+        'javax.jdo.option.ConnectionURL': pulumi.interpolate`jdbc:mysql://${rds.endpoint}/hive?createDatabaseIfNotExist=true`,
+        'javax.jdo.option.ConnectionDriverName': 'org.mariadb.jdbc.Driver',
+        'javax.jdo.option.ConnectionUserName': 'root',
+        'javax.jdo.option.ConnectionPassword': password,
+        'hive.blobstore.use.output-committer': 'true'
+      }
     }
-  });
+  ]);
+
+  const profileName = 'APP_MPDW_MER_INSTANCE_PROFILE';
+  const instanceProfile = new aws.iam.InstanceProfile(
+    profileName,
+    {
+      name: profileName,
+      role: iam.name,
+      tags
+    },
+    { dependsOn: [iam] }
+  );
 
   const emr = new aws.emr.Cluster(
     emrClusterName,
@@ -64,10 +77,10 @@ export const configureEmrCluster = (
       // EMR config
       applications,
       releaseLabel,
-      serviceRole: instanceProfile,
+      serviceRole: iam.name,
       scaleDownBehavior,
       configurationsJson,
-      logUri: `s3://${s3.id}/${emrClusterName}/logs`,
+      logUri: pulumi.interpolate`s3://${s3.id}/${emrClusterName}/logs`,
 
       // EC2 nodes
       ebsRootVolumeSize,
@@ -76,12 +89,12 @@ export const configureEmrCluster = (
       ec2Attributes: {
         ...ec2Attributes,
         keyName,
-        instanceProfile
+        instanceProfile: instanceProfile.name
       },
 
       tags
     },
-    { dependsOn: [rds, iam, s3] }
+    { dependsOn: [rds, iam, s3, instanceProfile] }
   );
 
   return emr;

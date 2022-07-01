@@ -41,7 +41,7 @@ export const configureEc2Instance = (env: string, iam: aws.iam.Role): aws.ec2.In
     }
   ];
 
-  const profileName = 'APP_MPDW_EC2_INSTANCE_RPOFILE';
+  const profileName = 'APP_MPDW_EC2_INSTANCE_PROFILE';
   const iamInstanceProfile = new aws.iam.InstanceProfile(
     profileName,
     {
