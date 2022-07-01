@@ -136,6 +136,9 @@ npm run pulumi:init:sit
 # now you are ready to deploy aws resources using the predefined scripts
 ```
 
+After running the initialisation of the stack `sit`, duplicate the `Pulumi.dev.yaml` file and name it `Pulumi.sit.yaml`. 
+Update the relevant Security Group IDs and the Subnet IDs in the duplicated file accordingly.
+
 Before doing deployment, the SSH private key (`app-mpdw-keypairs-sit.pem`) need to be pre-generated and stored onto the jump server for developer access:
 
 ```
