@@ -1,6 +1,18 @@
 config:
   aws:profile: mpdw-dev
   aws:region: us-west-2
+  data-platform:alb:
+    subnets:
+      tableau:
+      - subnet-019760772ede081b8
+      emr:
+      - subnet-019760772ede081b8
+    securityGroups:
+      tableau:
+      - sg-0ebdd9f6de43bd023
+      emr: 
+      - sg-031ea9e37f2e3737e
+    vpcId: vpc-0b13fe6731db32d2b
   data-platform:ec2:
     ami: ami-0d70546e43a941d70
     instanceType: r6i.2xlarge

@@ -5,7 +5,7 @@ import { configureRds } from './src/rds';
 import { configureS3Bucket } from './src/s3';
 import { configureIamRoles } from './src/iam';
 import { configureEmrCluster } from './src/emr';
-// import { configureEc2Instance } from './src/ec2';
+import { configureEc2Instance } from './src/ec2';
 
 export const log = (level: 'info' | 'warning' | 'error', message: string) => {
   const formatted = `${new Date().toISOString()} [${level.toUpperCase()}]: ${message}`;
@@ -58,11 +58,11 @@ export const start = (env: string) => {
   const { rds } = configureRds(env);
   rds.arn.apply((rdsArn) => log('info', `RDS for EMR metatdata created with ARN: ${rdsArn}`));
 
-  // // Create EC2 instance for installation of Tableau
-  // const tableau = configureEc2Instance(env, roles.tableau);
-  // tableau.arn.apply((ec2Arn) =>
-  //   log('info', `EC2 instance for installing tableau created with ARN: ${ec2Arn}`)
-  // );
+  // Create EC2 instance for installation of Tableau
+  const tableau = configureEc2Instance(env, roles.tableau);
+  tableau.arn.apply((ec2Arn) =>
+    log('info', `EC2 instance for installing tableau created with ARN: ${ec2Arn}`)
+  );
 
   // Create EMR cluster
   const emr = configureEmrCluster(env, roles.emr, rds, s3);
@@ -72,8 +72,8 @@ export const start = (env: string) => {
     s3,
     roles,
     emr,
-    rds
-    // tableau
+    rds,
+    tableau
   };
 };
 

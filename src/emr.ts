@@ -80,6 +80,7 @@ export const configureEmrCluster = (
       applications,
       releaseLabel,
       serviceRole: 'EMR_DefaultRole',
+      terminationProtection: false,
       scaleDownBehavior,
       configurationsJson,
       logUri: pulumi.interpolate`s3://${s3.id}/${emrClusterName}/logs`,
