@@ -6,9 +6,11 @@ config:
     certificateArn: arn:aws:acm:us-west-2:767433672128:certificate/0f774621-aa35-4b39-b170-03dbf90821bc
     subnets:
       tableau:
-      - subnet-019760772ede081b8
+      - subnet-0e7bf17ea904c7c6d
+      - subnet-0bbba0d8653ee85e9
       emr:
-      - subnet-019760772ede081b8
+      - subnet-0e7bf17ea904c7c6d
+      - subnet-0bbba0d8653ee85e9
     securityGroups:
       tableau:
       - sg-0ebdd9f6de43bd023

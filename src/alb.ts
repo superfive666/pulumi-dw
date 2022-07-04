@@ -151,7 +151,7 @@ const createInternalListener = (
     'tableausm'
   );
   createListenerRule(
-    `app-mpdw-listenerrule-${env}-jupyter`,
+    `app-mpdw-listenerrule-${env}-jp`,
     listener,
     jupyterHub.arn,
     baseDomain,
@@ -222,12 +222,12 @@ const createTargetGroups = (env: string, vpcId: string, ec2: aws.ec2.Instance): 
     { dependsOn: [tableau] }
   );
 
-  const tableauServiceManager = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-tableausm`, {
+  const tableauServiceManager = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-tsm`, {
     ...properties,
     port: 8850
   });
   new aws.lb.TargetGroupAttachment(
-    `app-mpdw-tgatt-${env}-tableausm`,
+    `app-mpdw-tgatt-${env}-tsm`,
     {
       targetGroupArn: tableauServiceManager.arn,
       targetId: ec2.id,
@@ -237,7 +237,7 @@ const createTargetGroups = (env: string, vpcId: string, ec2: aws.ec2.Instance): 
   );
 
   // master-public-dns-name
-  const jupyterHub = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-jupyterhub`, {
+  const jupyterHub = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-jh`, {
     ...properties,
     port: 9443
   });
