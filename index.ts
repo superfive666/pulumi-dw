@@ -4,7 +4,6 @@ import { configureVpc } from './src/vpc';
 import { configureRds } from './src/rds';
 import { configureAlbs } from './src/alb';
 import { configureS3Bucket } from './src/s3';
-import { configureIamRoles } from './src/iam';
 import { configureEmrCluster } from './src/emr';
 import { configureEc2Instance } from './src/ec2';
 
@@ -48,25 +47,25 @@ export const start = (env: string) => {
     log('info', `S3 bucket ID ${s3BucketId} created successfully`);
   });
 
-  // Create necessary IAM roles for AWS resources
-  const roles = configureIamRoles(s3);
-  pulumi.all([roles.emr.arn, roles.tableau.arn]).apply(([emr, tableua]) => {
-    log('info', `IAM role for EMR created with ARN: ${emr}`);
-    log('info', `IAM role Tableau ALB created with ARN: ${tableua}`);
-  });
+  // // Create necessary IAM roles for AWS resources
+  // const roles = configureIamRoles(s3);
+  // pulumi.all([roles.emr.arn, roles.tableau.arn]).apply(([emr, tableua]) => {
+  //   log('info', `IAM role for EMR created with ARN: ${emr}`);
+  //   log('info', `IAM role Tableau ALB created with ARN: ${tableua}`);
+  // });
 
   // Create small RDS instance for EMR to store metadata information
   const { rds } = configureRds(env);
   rds.arn.apply((rdsArn) => log('info', `RDS for EMR metatdata created with ARN: ${rdsArn}`));
 
   // Create EC2 instance for installation of Tableau
-  const tableau = configureEc2Instance(env, roles.tableau);
+  const tableau = configureEc2Instance(env);
   tableau.arn.apply((ec2Arn) =>
     log('info', `EC2 instance for installing tableau created with ARN: ${ec2Arn}`)
   );
 
   // Create EMR cluster
-  const emr = configureEmrCluster(env, roles.emr, rds, s3);
+  const emr = configureEmrCluster(env, rds, s3);
   emr.arn.apply((emrArn) => log('info', `EMR cluster created with ARN: ${emrArn}`));
 
   // Create ALB instances
@@ -74,7 +73,6 @@ export const start = (env: string) => {
 
   return {
     s3,
-    roles,
     emr,
     rds,
     tableau,

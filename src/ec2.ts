@@ -1,5 +1,4 @@
 import * as pulumi from '@pulumi/pulumi';
-import * as awsx from '@pulumi/awsx';
 import * as aws from '@pulumi/aws';
 
 import { input } from '@pulumi/aws/types';
@@ -12,7 +11,7 @@ interface IEc2Config {
   vpcSecurityGroupIds: string[];
 }
 
-export const configureEc2Instance = (env: string, iam: aws.iam.Role): aws.ec2.Instance => {
+export const configureEc2Instance = (env: string): aws.ec2.Instance => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
   const timestamp = new Date().toISOString();
@@ -42,15 +41,11 @@ export const configureEc2Instance = (env: string, iam: aws.iam.Role): aws.ec2.In
   ];
 
   const profileName = 'APP_MPDW_EC2_INSTANCE_PROFILE';
-  const iamInstanceProfile = new aws.iam.InstanceProfile(
-    profileName,
-    {
-      name: profileName,
-      role: iam.name,
-      tags
-    },
-    { dependsOn: [iam] }
-  );
+  const iamInstanceProfile = new aws.iam.InstanceProfile(profileName, {
+    name: profileName,
+    role: 'EMR_EC2_DefaultRole',
+    tags
+  });
 
   // Pending: AMI, vpc, subnet, volume, user-data
   const server = new aws.ec2.Instance(
@@ -66,7 +61,7 @@ export const configureEc2Instance = (env: string, iam: aws.iam.Role): aws.ec2.In
       userData,
       tags
     },
-    { dependsOn: [iam, iamInstanceProfile] }
+    { dependsOn: [iamInstanceProfile] }
   );
 
   return server;

@@ -4,18 +4,18 @@ config:
   data-platform:alb:
     baseDomain: deeppos.com
     certificateArn: arn:aws:acm:us-west-2:767433672128:certificate/0f774621-aa35-4b39-b170-03dbf90821bc
-    subnets:
+    securityGroups:
+      emr:
+      - sg-031ea9e37f2e3737e
       tableau:
-      - subnet-0e7bf17ea904c7c6d
-      - subnet-0bbba0d8653ee85e9
+      - sg-0ebdd9f6de43bd023
+    subnets:
       emr:
       - subnet-0e7bf17ea904c7c6d
       - subnet-0bbba0d8653ee85e9
-    securityGroups:
       tableau:
-      - sg-0ebdd9f6de43bd023
-      emr: 
-      - sg-031ea9e37f2e3737e
+      - subnet-0e7bf17ea904c7c6d
+      - subnet-0bbba0d8653ee85e9
     vpcId: vpc-0b13fe6731db32d2b
   data-platform:ec2:
     ami: ami-0d70546e43a941d70
@@ -64,16 +64,16 @@ config:
     releaseLabel: emr-6.6.0
     scaleDownBehavior: TERMINATE_AT_TASK_COMPLETION
   data-platform:masterPassword:
-    secure: AAABAIdpqrGuFPkLTML/LIyEnwb1sEzfIJD/+jruHFys5YeXylS2rXsmA8Sa0Mk=
+    secure: AAABADTFJm/Xq5oyTBVEzPcNICQOfNNqad+2HpSdGJw+foGK3HhAB1px/NQIfq8=
   data-platform:rds:
     allocatedStorage: 30
-    storageType: gp2
     engine: mysql
     engineVersion: 8.0.29
     iamDatabaseAuthenticationEnabled: true
     instanceClass: db.t3.small
     masterUsername: root
     port: 3306
+    storageType: gp2
     subnetIds:
     - subnet-019760772ede081b8
     - subnet-094f459d6b3fb92b6

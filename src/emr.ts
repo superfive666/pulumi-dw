@@ -16,7 +16,6 @@ interface IEmrSettings {
 
 export const configureEmrCluster = (
   env: string,
-  iam: aws.iam.Role,
   rds: aws.rds.Instance,
   s3: aws.s3.Bucket
 ): aws.emr.Cluster => {
@@ -60,7 +59,7 @@ export const configureEmrCluster = (
     ])
     .apply((v) => JSON.stringify(v));
 
-  const profileName = 'APP_MPDW_MER_INSTANCE_PROFILE';
+  const profileName = 'EMR_EC2_DefaultRole';
   const instanceProfile = new aws.iam.InstanceProfile(
     profileName,
     {
