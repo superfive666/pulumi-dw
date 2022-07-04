@@ -18,7 +18,7 @@ config:
       - subnet-0bbba0d8653ee85e9
     vpcId: vpc-0b13fe6731db32d2b
   data-platform:ec2:
-    ami: ami-0d70546e43a941d70
+    ami: ami-0b152cfd354c4c7a4 
     instanceType: r6i.2xlarge
     subnetId: subnet-0bbba0d8653ee85e9
     userData: |

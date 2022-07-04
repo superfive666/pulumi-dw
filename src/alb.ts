@@ -181,7 +181,6 @@ const createListenerRule = (
     name,
     {
       listenerArn: listener.arn,
-      priority: 1,
       actions: [
         {
           type: 'forward',

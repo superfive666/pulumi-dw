@@ -59,16 +59,12 @@ export const configureEmrCluster = (
     ])
     .apply((v) => JSON.stringify(v));
 
-  const profileName = 'EMR_EC2_DefaultRole';
-  const instanceProfile = new aws.iam.InstanceProfile(
-    profileName,
-    {
-      name: profileName,
-      role: iam.name,
-      tags
-    },
-    { dependsOn: [iam] }
-  );
+  const profileName = `app-mpdw-prof-${env}-emr`;
+  const instanceProfile = new aws.iam.InstanceProfile(profileName, {
+    name: profileName,
+    role: 'EMR_EC2_DefaultRole',
+    tags
+  });
 
   const emr = new aws.emr.Cluster(
     emrClusterName,
@@ -96,7 +92,7 @@ export const configureEmrCluster = (
 
       tags
     },
-    { dependsOn: [rds, iam, s3, instanceProfile] }
+    { dependsOn: [rds, s3, instanceProfile] }
   );
 
   return emr;
