@@ -47,7 +47,7 @@ interface ITargetGroups {
   hdfs: aws.lb.TargetGroup;
 }
 
-export const configureAlbs = ({ env, ec2, emr }: IAlbConfigurationProps): IAlbSettings => {
+export const configureAlbs = ({ env, ec2 }: IAlbConfigurationProps): IAlbSettings => {
   const config = new pulumi.Config();
   const { vpcId, subnets, securityGroups, certificateArn, baseDomain } =
     config.requireObject<IAlbConfigs>('alb');
@@ -58,7 +58,7 @@ export const configureAlbs = ({ env, ec2, emr }: IAlbConfigurationProps): IAlbSe
 
   // Create target groups
   // Create target group attachment settings in order to register instances to the load balancer
-  const targetGroups = createTargetGroups(env, vpcId, ec2, emr);
+  const targetGroups = createTargetGroups(env, vpcId, ec2);
 
   // Create load balancer listeners and their respective listener rules
   const internalListener = createInternalListener(

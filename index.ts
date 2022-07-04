@@ -2,6 +2,7 @@ import * as pulumi from '@pulumi/pulumi';
 
 import { configureVpc } from './src/vpc';
 import { configureRds } from './src/rds';
+import { configureAlbs } from './src/alb';
 import { configureS3Bucket } from './src/s3';
 import { configureIamRoles } from './src/iam';
 import { configureEmrCluster } from './src/emr';
@@ -68,12 +69,16 @@ export const start = (env: string) => {
   const emr = configureEmrCluster(env, roles.emr, rds, s3);
   emr.arn.apply((emrArn) => log('info', `EMR cluster created with ARN: ${emrArn}`));
 
+  // Create ALB instances
+  const albs = configureAlbs({ env, ec2: tableau, emr });
+
   return {
     s3,
     roles,
     emr,
     rds,
-    tableau
+    tableau,
+    ...albs
   };
 };
 
