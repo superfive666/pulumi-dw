@@ -20,6 +20,7 @@ interface IAlbConfigs {
   vpcId: string;
   subnets: ISettings;
   securityGroups: ISettings;
+  certificateArn: string;
 }
 
 interface IAlbConfigurationProps {
@@ -45,7 +46,7 @@ interface ITargetGroups {
 
 export const configureAlbs = ({ env }: IAlbConfigurationProps): IAlbSettings => {
   const config = new pulumi.Config();
-  const { vpcId, subnets, securityGroups } = config.requireObject<IAlbConfigs>('alb');
+  const { vpcId, subnets, securityGroups, certificateArn } = config.requireObject<IAlbConfigs>('alb');
 
   // Create load balancers
   const internal = createInternalAlb(env, subnets.emr, securityGroups.emr);
@@ -57,8 +58,8 @@ export const configureAlbs = ({ env }: IAlbConfigurationProps): IAlbSettings => 
   // Create target group attachment settings in order to register instances to the load balancer
 
   // Create load balancer listeners and their respective listener rules
-  const internalListener = createInternalListener(env, internal, targetGroups);
-  const externalListener = createExternalListener(env, external, targetGroups);
+  const internalListener = createInternalListener(env, internal, certificateArn, targetGroups);
+  const externalListener = createExternalListener(env, external, certificateArn, targetGroups);
 
   return { internal, external, targetGroups, internalListener, externalListener };
 };
@@ -66,6 +67,7 @@ export const configureAlbs = ({ env }: IAlbConfigurationProps): IAlbSettings => 
 const createExternalListener = (
   env: string,
   alb: aws.lb.LoadBalancer,
+  certificateArn: string,
   { tableau }: ITargetGroups
 ): aws.lb.Listener => {
   const listener = new aws.lb.Listener(`app-mpdw-listener-${env}-external`, {
@@ -73,7 +75,7 @@ const createExternalListener = (
     port: 443,
     protocol: 'HTTPS',
     sslPolicy: 'ELBSecurityPolicy-2016-08',
-    certificateArn: '',
+    certificateArn,
     defaultActions: [
       {
         type: 'fixed-response',
@@ -95,6 +97,7 @@ const createExternalListener = (
 const createInternalListener = (
   env: string,
   alb: aws.lb.LoadBalancer,
+  certificateArn: string,
   { tableauServiceManager, jupyterHub, livy, spark, hdfs }: ITargetGroups
 ): aws.lb.Listener => {
   const listener = new aws.lb.Listener(`app-mpdw-listener-${env}-internal`, {
@@ -102,7 +105,7 @@ const createInternalListener = (
     port: 443,
     protocol: 'HTTPS',
     sslPolicy: 'ELBSecurityPolicy-2016-08',
-    certificateArn: '',
+    certificateArn,
     defaultActions: [
       {
         type: 'fixed-response',
@@ -153,7 +156,8 @@ const createListenerRule = (
             values: [`${domain}.dataplatform.deepos.com`]
           }
         }
-      ]
+      ],
+      tags: baseTags
     },
     { dependsOn: [listener] }
   );

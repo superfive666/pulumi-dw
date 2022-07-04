@@ -2,6 +2,7 @@ config:
   aws:profile: mpdw-dev
   aws:region: us-west-2
   data-platform:alb:
+    certificateArn: ''
     subnets:
       tableau:
       - subnet-019760772ede081b8
