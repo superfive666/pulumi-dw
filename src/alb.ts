@@ -21,10 +21,13 @@ interface IAlbConfigs {
   subnets: ISettings;
   securityGroups: ISettings;
   certificateArn: string;
+  baseDomain: string;
 }
 
 interface IAlbConfigurationProps {
   env: string;
+  ec2: aws.ec2.Instance;
+  emr: aws.emr.Cluster;
 }
 
 interface IAlbSettings {
@@ -44,22 +47,35 @@ interface ITargetGroups {
   hdfs: aws.lb.TargetGroup;
 }
 
-export const configureAlbs = ({ env }: IAlbConfigurationProps): IAlbSettings => {
+export const configureAlbs = ({ env, ec2, emr }: IAlbConfigurationProps): IAlbSettings => {
   const config = new pulumi.Config();
-  const { vpcId, subnets, securityGroups, certificateArn } = config.requireObject<IAlbConfigs>('alb');
+  const { vpcId, subnets, securityGroups, certificateArn, baseDomain } =
+    config.requireObject<IAlbConfigs>('alb');
 
   // Create load balancers
   const internal = createInternalAlb(env, subnets.emr, securityGroups.emr);
   const external = createExternalAlb(env, subnets.tableau, securityGroups.tableau);
 
   // Create target groups
-  const targetGroups = createTargetGroups(env, vpcId);
-
   // Create target group attachment settings in order to register instances to the load balancer
+  const targetGroups = createTargetGroups(env, vpcId, ec2, emr);
 
   // Create load balancer listeners and their respective listener rules
-  const internalListener = createInternalListener(env, internal, certificateArn, targetGroups);
-  const externalListener = createExternalListener(env, external, certificateArn, targetGroups);
+  const internalListener = createInternalListener(
+    env,
+    internal,
+    certificateArn,
+    baseDomain,
+    targetGroups
+  );
+
+  const externalListener = createExternalListener(
+    env,
+    external,
+    certificateArn,
+    baseDomain,
+    targetGroups
+  );
 
   return { internal, external, targetGroups, internalListener, externalListener };
 };
@@ -68,6 +84,7 @@ const createExternalListener = (
   env: string,
   alb: aws.lb.LoadBalancer,
   certificateArn: string,
+  baseDomain: string,
   { tableau }: ITargetGroups
 ): aws.lb.Listener => {
   const listener = new aws.lb.Listener(`app-mpdw-listener-${env}-external`, {
@@ -89,7 +106,13 @@ const createExternalListener = (
     tags: baseTags
   });
 
-  createListenerRule(`app-mpdw-listenerrule-${env}-tableau`, listener, tableau.arn, 'tableau');
+  createListenerRule(
+    `app-mpdw-listenerrule-${env}-tableau`,
+    listener,
+    tableau.arn,
+    baseDomain,
+    'tableau'
+  );
 
   return listener;
 };
@@ -98,6 +121,7 @@ const createInternalListener = (
   env: string,
   alb: aws.lb.LoadBalancer,
   certificateArn: string,
+  baseDomain: string,
   { tableauServiceManager, jupyterHub, livy, spark, hdfs }: ITargetGroups
 ): aws.lb.Listener => {
   const listener = new aws.lb.Listener(`app-mpdw-listener-${env}-internal`, {
@@ -123,12 +147,25 @@ const createInternalListener = (
     `app-mpdw-listenerrule-${env}-tsm`,
     listener,
     tableauServiceManager.arn,
+    baseDomain,
     'tableausm'
   );
-  createListenerRule(`app-mpdw-listenerrule-${env}-jupyter`, listener, jupyterHub.arn, 'jupyter');
-  createListenerRule(`app-mpdw-listenerrule-${env}-livy`, listener, livy.arn, 'livy');
-  createListenerRule(`app-mpdw-listenerrule-${env}-spark`, listener, spark.arn, 'spark');
-  createListenerRule(`app-mpdw-listenerrule-${env}-hdfs`, listener, hdfs.arn, 'hdfs');
+  createListenerRule(
+    `app-mpdw-listenerrule-${env}-jupyter`,
+    listener,
+    jupyterHub.arn,
+    baseDomain,
+    'jupyter'
+  );
+  createListenerRule(`app-mpdw-listenerrule-${env}-livy`, listener, livy.arn, baseDomain, 'livy');
+  createListenerRule(
+    `app-mpdw-listenerrule-${env}-spark`,
+    listener,
+    spark.arn,
+    baseDomain,
+    'spark'
+  );
+  createListenerRule(`app-mpdw-listenerrule-${env}-hdfs`, listener, hdfs.arn, baseDomain, 'hdfs');
 
   return listener;
 };
@@ -137,6 +174,7 @@ const createListenerRule = (
   name: string,
   listener: aws.lb.Listener,
   targetGroupArn: pulumi.Output<string>,
+  baseDomain: string,
   domain: string
 ) => {
   return new aws.lb.ListenerRule(
@@ -153,7 +191,7 @@ const createListenerRule = (
       conditions: [
         {
           hostHeader: {
-            values: [`${domain}.dataplatform.deepos.com`]
+            values: [`${domain}.dataplatform.${baseDomain}`]
           }
         }
       ],
@@ -163,7 +201,7 @@ const createListenerRule = (
   );
 };
 
-const createTargetGroups = (env: string, vpcId: string): ITargetGroups => {
+const createTargetGroups = (env: string, vpcId: string, ec2: aws.ec2.Instance): ITargetGroups => {
   const properties = {
     protocol: 'HTTP',
     vpcId,
@@ -174,11 +212,29 @@ const createTargetGroups = (env: string, vpcId: string): ITargetGroups => {
     ...properties,
     port: 80
   });
+  new aws.lb.TargetGroupAttachment(
+    `app-mpdw-tgatt-${env}-tableau`,
+    {
+      targetGroupArn: tableau.arn,
+      targetId: ec2.id,
+      port: 80
+    },
+    { dependsOn: [tableau] }
+  );
 
   const tableauServiceManager = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-tableausm`, {
     ...properties,
     port: 8850
   });
+  new aws.lb.TargetGroupAttachment(
+    `app-mpdw-tgatt-${env}-tableausm`,
+    {
+      targetGroupArn: tableauServiceManager.arn,
+      targetId: ec2.id,
+      port: 8850
+    },
+    { dependsOn: [tableauServiceManager] }
+  );
 
   // master-public-dns-name
   const jupyterHub = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-jupyterhub`, {

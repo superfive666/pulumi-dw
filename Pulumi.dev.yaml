@@ -2,7 +2,8 @@ config:
   aws:profile: mpdw-dev
   aws:region: us-west-2
   data-platform:alb:
-    certificateArn: ''
+    baseDomain: deeppos.com
+    certificateArn: arn:aws:acm:us-west-2:767433672128:certificate/0f774621-aa35-4b39-b170-03dbf90821bc
     subnets:
       tableau:
       - subnet-019760772ede081b8
