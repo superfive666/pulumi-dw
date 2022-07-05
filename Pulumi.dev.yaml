@@ -6,21 +6,21 @@ config:
     certificateArn: arn:aws:acm:us-west-2:767433672128:certificate/0f774621-aa35-4b39-b170-03dbf90821bc
     securityGroups:
       emr:
-      - sg-031ea9e37f2e3737e
+      - sg-06d20113a2442ba4a 
       tableau:
-      - sg-0ebdd9f6de43bd023
+      - sg-07cf03280c61118cc
     subnets:
       emr:
-      - subnet-0e7bf17ea904c7c6d
-      - subnet-0bbba0d8653ee85e9
+      - subnet-05c8b23fd13c76ce2
+      - subnet-0e3034af4767091ff
       tableau:
-      - subnet-0e7bf17ea904c7c6d
-      - subnet-0bbba0d8653ee85e9
-    vpcId: vpc-0b13fe6731db32d2b
+      - subnet-05c8b23fd13c76ce2
+      - subnet-0e3034af4767091ff
+    vpcId: vpc-09afec90cd3db53e6
   data-platform:ec2:
     ami: ami-0b152cfd354c4c7a4 
     instanceType: r6i.2xlarge
-    subnetId: subnet-0bbba0d8653ee85e9
+    subnetId: subnet-0e3034af4767091ff
     userData: |
       # optional install zsh
       sh -c "$(curl -fsSL https://raw.githubusercontent.com/swwl1992/oh-my-zsh/master/tools/install.sh)"
@@ -28,7 +28,7 @@ config:
       git clone https://github.com/zsh-users/zsh-autosuggestions
       mv zsh-autosuggestions .oh-my-zsh/plugins & mv zsh-syntax-highlighting .oh-my-zsh/plugins
     vpcSecurityGroupIds:
-    - sg-02c3ffb766f1e8301
+    - sg-0197ee0415262abd6
   data-platform:emr:
     applications:
     - Hadoop
@@ -48,11 +48,12 @@ config:
       name: Core - 2
     ebsRootVolumeSize: 30
     ec2Attributes:
-      emrManagedMasterSecurityGroup: sg-00fc9697ed311b669
-      emrManagedSlaveSecurityGroup: sg-0368e42255228267e
-      serviceAccessSecurityGroup: sg-02fcb5447cc8f4b8d
+      emrManagedMasterSecurityGroup: sg-0bccfcc4581303ffd
+      emrManagedSlaveSecurityGroup: sg-04e6d45276d7f1e91
+      serviceAccessSecurityGroup: sg-0abd6b2c24e71c1d3
       subnetIds:
-      - subnet-019760772ede081b8
+      - subnet-0bc6e9ae54e7cd610
+      - subnet-040e514ad8e58af5d
     masterInstanceGroup:
       ebsConfigs:
       - size: 32
@@ -76,10 +77,10 @@ config:
     port: 3306
     storageType: gp2
     subnetIds:
-    - subnet-019760772ede081b8
-    - subnet-094f459d6b3fb92b6
+    - subnet-0bc6e9ae54e7cd610
+    - subnet-040e514ad8e58af5d
     vpcSecurityGroupIds:
-    - sg-0fa1836526856ba5f
+    - sg-004025ab6b44fecf7
   data-platform:timestamp:
     enable: false
   data-platform:vpc:
