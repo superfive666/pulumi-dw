@@ -14,13 +14,11 @@ interface IEc2Config {
 export const configureEc2Instance = (env: string): aws.ec2.Instance => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
-  const timestamp = new Date().toISOString();
   const tags: aws.Tags = {
     'pulumi:Project': pulumiProject,
     'pulumi:Stack': stack,
     Project: 'mpdw',
     purpose: 'tableau',
-    timestamp
   };
 
   const config = new pulumi.Config();

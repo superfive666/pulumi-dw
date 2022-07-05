@@ -22,13 +22,11 @@ interface IRdsConfigSettings {
 export const configureRds = (env: string): IRdsConfigSettings => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
-  const timestamp = new Date().toISOString();
   const tags: aws.Tags = {
     'pulumi:Project': pulumiProject,
     'pulumi:Stack': stack,
     Project: 'mpdw',
-    purpose: 'emr',
-    timestamp
+    purpose: 'emr'
   };
 
   const config = new pulumi.Config();

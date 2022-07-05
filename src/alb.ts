@@ -45,6 +45,7 @@ interface ITargetGroups {
   livy: aws.lb.TargetGroup;
   spark: aws.lb.TargetGroup;
   hdfs: aws.lb.TargetGroup;
+  presto: aws.lb.TargetGroup;
 }
 
 export const configureAlbs = ({ env, ec2 }: IAlbConfigurationProps): IAlbSettings => {
@@ -122,7 +123,7 @@ const createInternalListener = (
   alb: aws.lb.LoadBalancer,
   certificateArn: string,
   baseDomain: string,
-  { tableauServiceManager, jupyterHub, livy, spark, hdfs }: ITargetGroups
+  { tableauServiceManager, jupyterHub, livy, spark, hdfs, presto }: ITargetGroups
 ): aws.lb.Listener => {
   const listener = new aws.lb.Listener(`app-mpdw-listener-${env}-internal`, {
     loadBalancerArn: alb.arn,
@@ -166,6 +167,13 @@ const createInternalListener = (
     'spark'
   );
   createListenerRule(`app-mpdw-listenerrule-${env}-hdfs`, listener, hdfs.arn, baseDomain, 'hdfs');
+  createListenerRule(
+    `app-mpdw-listenerrule-${env}-presto`,
+    listener,
+    presto.arn,
+    baseDomain,
+    'presto'
+  );
 
   return listener;
 };
@@ -223,7 +231,8 @@ const createTargetGroups = (env: string, vpcId: string, ec2: aws.ec2.Instance): 
 
   const tableauServiceManager = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-tsm`, {
     ...properties,
-    port: 8850
+    port: 8850,
+    protocol: 'HTTPS'
   });
   new aws.lb.TargetGroupAttachment(
     `app-mpdw-tgatt-${env}-tsm`,
@@ -259,7 +268,13 @@ const createTargetGroups = (env: string, vpcId: string, ec2: aws.ec2.Instance): 
     port: 9870
   });
 
-  return { tableau, tableauServiceManager, jupyterHub, livy, spark, hdfs };
+  // master-public-dns-name
+  const presto = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-presto`, {
+    ...properties,
+    port: 8889
+  });
+
+  return { tableau, tableauServiceManager, jupyterHub, livy, spark, hdfs, presto };
 };
 
 /**

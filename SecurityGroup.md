@@ -23,6 +23,11 @@ For security groups ingress rules please refer to the table below:
 | sg-emr-master | EMR master | All UDP | UDP | 0-65535 | sg-emr-slave | Open all UDP ports for EMR slave group |
 | sg-emr-master | EMR master | All ICMP - IPv4 | ICMP | All | sg-emr-master | Open all ICMP ports for same security group |
 | sg-emr-master | EMR master | All ICMP - IPv4 | ICMP | All | sg-emr-slave | Open all ICMP ports for EMR slave group |
+| sg-emr-master | EMR master | Custom TCP | TCP | 8889 | sg-alb2 | Allow internal link for presto service in EMR |
+| sg-emr-master | EMR master | Custom TCP | TCP | 9443 | sg-alb2 | Allow internal link for jupyter hub service in EMR |
+| sg-emr-master | EMR master | Custom TCP | TCP | 8998 | sg-alb2 | Allow internal link for livy service in EMR |
+| sg-emr-master | EMR master | Custom TCP | TCP | 9870 | sg-alb2 | Allow internal link for HDFS service in EMR |
+| sg-emr-master | EMR master | Custom TCP | TCP | 8998 | sg-alb2 | Allow internal link for spark service in EMR |
 | sg-emr-slave | EMR slave | Custom TCP | TCP | 8443 | sg-emr-service | Allow EMR service group to access 8443 port |
 | sg-emr-slave | EMR slave | All TCP | TCP | 0-65535 | sg-emr-master | Open all TCP ports for EMR master group |
 | sg-emr-slave | EMR slave | All TCP | TCP | 0-65535 | sg-emr-slave | Open all TCP ports for same group |
