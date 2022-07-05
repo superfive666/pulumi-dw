@@ -3,12 +3,10 @@ import * as aws from '@pulumi/aws';
 
 const pulumiProject = pulumi.getProject();
 const stack = pulumi.getStack();
-const timestamp = new Date().toISOString();
 const baseTags: aws.Tags = {
   'pulumi:Project': pulumiProject,
   'pulumi:Stack': stack,
-  purpose: 'alb',
-  timestamp
+  purpose: 'alb'
 };
 
 interface ISettings {

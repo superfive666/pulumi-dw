@@ -90,13 +90,10 @@ const createVpc = (env: string): awsx.ec2.Vpc => {
   log('info', `{VPC} - number of availability zones: ${numberOfAvailabilityZones}`);
   log('info', `{VPC} - number of NAT gateways: ${numberOfNatGateways}`);
 
-  const timestamp = new Date().toISOString();
-
   const baseTags: aws.Tags = {
     Project: 'mpdw',
     'pulumi:Project': pulumiProject,
     'pulumi:Stack': stack,
-    timestamp
   };
 
   const tags: aws.Tags = {

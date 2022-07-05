@@ -10,12 +10,10 @@ interface IIamRoleSettings {
 
 const pulumiProject = pulumi.getProject();
 const stack = pulumi.getStack();
-const timestamp = new Date().toISOString();
 const baseTags: aws.Tags = {
   Project: 'mpdw',
   'pulumi:Project': pulumiProject,
-  'pulumi:Stack': stack,
-  timestamp
+  'pulumi:Stack': stack
 };
 
 export const configureIamRoles = (s3: aws.s3.Bucket): IIamRoleSettings => {
