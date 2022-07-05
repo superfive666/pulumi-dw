@@ -40,7 +40,7 @@ export const configureEc2Instance = (env: string): aws.ec2.Instance => {
     }
   ];
 
-  const profileName = `app-mpdw-pf-${env}-ec2`;
+  const profileName = `app-mpdw-prf-${env}-ec2`;
   const iamInstanceProfile = new aws.iam.InstanceProfile(profileName, {
     name: profileName,
     role: 'EMR_EC2_DefaultRole',
