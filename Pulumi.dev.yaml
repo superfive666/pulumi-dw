@@ -6,7 +6,7 @@ config:
     certificateArn: arn:aws:acm:us-west-2:767433672128:certificate/0f774621-aa35-4b39-b170-03dbf90821bc
     securityGroups:
       emr:
-      - sg-06d20113a2442ba4a 
+      - sg-06d20113a2442ba4a
       tableau:
       - sg-07cf03280c61118cc
     subnets:
@@ -18,7 +18,7 @@ config:
       - subnet-0e3034af4767091ff
     vpcId: vpc-09afec90cd3db53e6
   data-platform:ec2:
-    ami: ami-0b152cfd354c4c7a4 
+    ami: ami-0b152cfd354c4c7a4
     instanceType: r6i.2xlarge
     subnetId: subnet-0e3034af4767091ff
     userData: |
@@ -66,7 +66,7 @@ config:
     releaseLabel: emr-6.6.0
     scaleDownBehavior: TERMINATE_AT_TASK_COMPLETION
   data-platform:masterPassword:
-    secure: AAABADTFJm/Xq5oyTBVEzPcNICQOfNNqad+2HpSdGJw+foGK3HhAB1px/NQIfq8=
+    secure: AAABAOM7MvIvR9mFUcwNrx6FGahyz0pWmWoP9lDdN6hs+J4su7Nxea76CCRVsQw=
   data-platform:rds:
     allocatedStorage: 30
     engine: mysql
