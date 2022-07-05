@@ -35,6 +35,7 @@ config:
     - Spark
     - JupyterHub
     - Sqoop
+    - Presto
     - Livy
     - Hive
     coreInstanceGroup:
