@@ -59,7 +59,7 @@ export const configureEmrCluster = (
     ])
     .apply((v) => JSON.stringify(v));
 
-  const profileName = `app-mpdw-prof-${env}-emr`;
+  const profileName = `app-mpdw-pf-${env}-emr`;
   const instanceProfile = new aws.iam.InstanceProfile(profileName, {
     name: profileName,
     role: 'EMR_EC2_DefaultRole',

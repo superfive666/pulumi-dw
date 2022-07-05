@@ -11,11 +11,11 @@ config:
       - sg-07cf03280c61118cc
     subnets:
       emr:
-      - subnet-05c8b23fd13c76ce2
       - subnet-0e3034af4767091ff
+      - subnet-05c8b23fd13c76ce2
       tableau:
-      - subnet-05c8b23fd13c76ce2
       - subnet-0e3034af4767091ff
+      - subnet-05c8b23fd13c76ce2
     vpcId: vpc-09afec90cd3db53e6
   data-platform:ec2:
     ami: ami-0b152cfd354c4c7a4
@@ -52,7 +52,6 @@ config:
       emrManagedSlaveSecurityGroup: sg-04e6d45276d7f1e91
       serviceAccessSecurityGroup: sg-0abd6b2c24e71c1d3
       subnetIds:
-      - subnet-0bc6e9ae54e7cd610
       - subnet-040e514ad8e58af5d
     masterInstanceGroup:
       ebsConfigs:
@@ -66,7 +65,7 @@ config:
     releaseLabel: emr-6.6.0
     scaleDownBehavior: TERMINATE_AT_TASK_COMPLETION
   data-platform:masterPassword:
-    secure: AAABAOM7MvIvR9mFUcwNrx6FGahyz0pWmWoP9lDdN6hs+J4su7Nxea76CCRVsQw=
+    secure: AAABALNA8fQYToxLk445MtWHinE6IAr79WOs4BX4AqfSpBN/0EYPEdQH7WbSeGg=
   data-platform:rds:
     allocatedStorage: 30
     engine: mysql
@@ -77,8 +76,8 @@ config:
     port: 3306
     storageType: gp2
     subnetIds:
-    - subnet-0bc6e9ae54e7cd610
     - subnet-040e514ad8e58af5d
+    - subnet-0bc6e9ae54e7cd610
     vpcSecurityGroupIds:
     - sg-004025ab6b44fecf7
   data-platform:timestamp:
