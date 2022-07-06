@@ -4,8 +4,8 @@ import { configureVpc } from './src/vpc';
 import { configureRds } from './src/rds';
 import { configureAlbs } from './src/alb';
 import { configureS3Bucket } from './src/s3';
-import { configureEmrCluster, configureJupyterCluster } from './src/emr';
 import { configureEc2Instance } from './src/ec2';
+import { configureEmrCluster, configureJupyterCluster } from './src/emr';
 
 export const log = (level: 'info' | 'warning' | 'error', message: string) => {
   const formatted = `${new Date().toISOString()} [${level.toUpperCase()}]: ${message}`;
