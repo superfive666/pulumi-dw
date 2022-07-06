@@ -185,3 +185,7 @@ npm run pulumi:destroy:sit
 ```
 
 For more available pre-defined scripts, please refer to the `package.json` file.
+
+[Security Group Configuration](SecurityGroup.md)
+
+[Tableau Setup Steps on Unbuntu Linux EC2](TableauSetup.md)
