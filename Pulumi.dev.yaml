@@ -33,10 +33,8 @@ config:
     applications:
     - Hadoop
     - Spark
-    - JupyterHub
     - Sqoop
     - Presto
-    - Livy
     - Hive
     coreInstanceGroup:
       ebsConfigs:
@@ -64,8 +62,42 @@ config:
     osReleaseLabel: 2.0.20220406.1
     releaseLabel: emr-6.6.0
     scaleDownBehavior: TERMINATE_AT_TASK_COMPLETION
+  data-platform:jupyter:
+    applications:
+    - Hadoop
+    - Spark
+    - JupyterHub
+    - JupyterEnterpriseGateway
+    - Livy
+    - Hive
+    coreInstanceGroup:
+      ebsConfigs:
+      - size: 32
+        type: gp2
+        volumesPerInstance: 2
+      instanceCount: 1
+      instanceType: m6g.xlarge
+      name: Core - 2
+    ebsRootVolumeSize: 30
+    ec2Attributes:
+      emrManagedMasterSecurityGroup: sg-0bccfcc4581303ffd
+      emrManagedSlaveSecurityGroup: sg-04e6d45276d7f1e91
+      serviceAccessSecurityGroup: sg-0abd6b2c24e71c1d3
+      subnetIds:
+      - subnet-040e514ad8e58af5d
+    masterInstanceGroup:
+      ebsConfigs:
+      - size: 32
+        type: gp2
+        volumesPerInstance: 2
+      instanceCount: 1
+      instanceType: m5.xlarge
+      name: Master - 1
+    osReleaseLabel: 2.0.20220406.1
+    releaseLabel: emr-6.6.0
+    scaleDownBehavior: TERMINATE_AT_TASK_COMPLETION
   data-platform:masterPassword:
-    secure: AAABAGyQydQI9Axe5YmWOI/ftj/nmdCvv4RRiG2M802pai+tlUCTNd6GsbtDFkg=
+    secure: AAABAFaW233CwlYrpaOC2imJHncUwh4Sl8pKcM2sMMqam7pSDsH7pwLbMydfEME=
   data-platform:rds:
     allocatedStorage: 30
     engine: mysql

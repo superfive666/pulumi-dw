@@ -14,20 +14,117 @@ interface IEmrSettings {
   ec2Attributes: input.emr.ClusterEc2Attributes;
 }
 
+const pulumiProject = pulumi.getProject();
+const stack = pulumi.getStack();
+const tags: aws.Tags = {
+  'pulumi:Project': pulumiProject,
+  'pulumi:Stack': stack,
+  Project: 'mpdw',
+  purpose: 'emr'
+};
+
+export const configureJupyterCluster = (
+  env: string,
+  rds: aws.rds.Instance,
+  log: aws.s3.Bucket,
+  s3: aws.s3.Bucket
+): aws.emr.Cluster => {
+  const config = new pulumi.Config();
+  const {
+    applications,
+    scaleDownBehavior = 'TERMINATE_AT_TASK_COMPLETION',
+    releaseLabel,
+    ebsRootVolumeSize,
+    coreInstanceGroup,
+    masterInstanceGroup,
+    ec2Attributes
+  } = config.requireObject<IEmrSettings>('jupyter');
+
+  const emrClusterName = `app-mpdw-emrjpt-${env}`;
+  const keyName = `app-mpdw-keypairs-${env}`;
+  const password = config.requireSecret('masterPassword');
+
+  const configurationsJson = pulumi
+    .output([
+      {
+        Classification: 'hive-site',
+        Properties: {
+          'javax.jdo.option.ConnectionURL': pulumi.interpolate`jdbc:mysql://${rds.endpoint}/hive?createDatabaseIfNotExist=true`,
+          'javax.jdo.option.ConnectionDriverName': 'org.mariadb.jdbc.Driver',
+          'javax.jdo.option.ConnectionUserName': 'root',
+          'javax.jdo.option.ConnectionPassword': password,
+          'hive.blobstore.use.output-committer': 'true'
+        }
+      },
+      {
+        Classification: 'jupyter-s3-conf',
+        Properties: {
+          's3.persistence.enabled': 'true',
+          's3.persistence.bucket': s3.id
+        }
+      }
+    ])
+    .apply((v) => JSON.stringify(v));
+
+  const profileName = `app-mpdw-prf-${env}-emrjpt`;
+  const instanceProfile = new aws.iam.InstanceProfile(profileName, {
+    name: profileName,
+    role: 'EMR_EC2_DefaultRole',
+    tags
+  });
+
+  const emr = new aws.emr.Cluster(
+    emrClusterName,
+    {
+      name: emrClusterName,
+
+      // EMR config
+      applications,
+      releaseLabel,
+      serviceRole: 'EMR_DefaultRole',
+      autoscalingRole: 'EMR_AutoScaling_DefaultRole',
+      terminationProtection: false,
+      scaleDownBehavior,
+      configurationsJson,
+      logUri: pulumi.interpolate`s3://${log.id}/${emrClusterName}/logs`,
+
+      // EC2 nodes
+      ebsRootVolumeSize,
+      masterInstanceGroup,
+      coreInstanceGroup,
+      ec2Attributes: {
+        ...ec2Attributes,
+        keyName,
+        instanceProfile: instanceProfile.name
+      },
+
+      tags
+    },
+    { dependsOn: [rds, s3, log, instanceProfile] }
+  );
+
+  new aws.emr.ManagedScalingPolicy(`app-mpdw-scaling-${env}`, {
+    clusterId: emr.id,
+    computeLimits: [
+      {
+        unitType: 'Instances',
+        minimumCapacityUnits: 1,
+        maximumCapacityUnits: 5,
+        maximumOndemandCapacityUnits: 2,
+        maximumCoreCapacityUnits: 2
+      }
+    ]
+  });
+
+  return emr;
+};
+
 export const configureEmrCluster = (
   env: string,
   rds: aws.rds.Instance,
   s3: aws.s3.Bucket
 ): aws.emr.Cluster => {
   const config = new pulumi.Config();
-  const pulumiProject = pulumi.getProject();
-  const stack = pulumi.getStack();
-  const tags: aws.Tags = {
-    'pulumi:Project': pulumiProject,
-    'pulumi:Stack': stack,
-    Project: 'mpdw',
-    purpose: 'emr',
-  };
   const {
     applications,
     scaleDownBehavior = 'TERMINATE_AT_TASK_COMPLETION',

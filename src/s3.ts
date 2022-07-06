@@ -1,7 +1,13 @@
 import * as pulumi from '@pulumi/pulumi';
 import * as aws from '@pulumi/aws';
 
-export const configureS3Bucket = (env: string): aws.s3.Bucket => {
+interface IS3BucketOutput {
+  log: aws.s3.Bucket;
+  data: aws.s3.Bucket;
+  jupyter: aws.s3.Bucket;
+}
+
+export const configureS3Bucket = (env: string): IS3BucketOutput => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
   const baseTags: aws.Tags = {
@@ -10,8 +16,8 @@ export const configureS3Bucket = (env: string): aws.s3.Bucket => {
     'pulumi:Stack': stack
   };
 
-  const bucketName = `app-mpdw-s3-${env}`;
-  const s3 = new aws.s3.Bucket(bucketName, {
+  const logName = `app-mpdw-${env}-log`;
+  const log = new aws.s3.Bucket(logName, {
     acl: 'private',
     tags: {
       ...baseTags,
@@ -19,5 +25,27 @@ export const configureS3Bucket = (env: string): aws.s3.Bucket => {
     }
   });
 
-  return s3;
+  const dataName = `app-mpdw-${env}-data`;
+  const data = new aws.s3.Bucket(dataName, {
+    acl: 'private',
+    tags: {
+      ...baseTags,
+      purpose: 'emr-data'
+    }
+  });
+
+  const jupyterName = `app-mpdw-${env}-jpt`;
+  const jupyter = new aws.s3.Bucket(jupyterName, {
+    acl: 'private',
+    tags: {
+      ...baseTags,
+      purpose: 'emr-jpt'
+    }
+  });
+
+  return {
+    log,
+    data,
+    jupyter
+  };
 };

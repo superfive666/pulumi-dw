@@ -4,7 +4,7 @@ import { configureVpc } from './src/vpc';
 import { configureRds } from './src/rds';
 import { configureAlbs } from './src/alb';
 import { configureS3Bucket } from './src/s3';
-import { configureEmrCluster } from './src/emr';
+import { configureEmrCluster, configureJupyterCluster } from './src/emr';
 import { configureEc2Instance } from './src/ec2';
 
 export const log = (level: 'info' | 'warning' | 'error', message: string) => {
@@ -42,17 +42,10 @@ export const start = (env: string) => {
   log('info', 'Pulumi deployment started...');
 
   // Create the S3 bucket for EMR to store necessary HDFS files
-  const s3 = configureS3Bucket(env);
+  const { log: s3, jupyter } = configureS3Bucket(env);
   s3.id.apply((s3BucketId) => {
     log('info', `S3 bucket ID ${s3BucketId} created successfully`);
   });
-
-  // // Create necessary IAM roles for AWS resources
-  // const roles = configureIamRoles(s3);
-  // pulumi.all([roles.emr.arn, roles.tableau.arn]).apply(([emr, tableua]) => {
-  //   log('info', `IAM role for EMR created with ARN: ${emr}`);
-  //   log('info', `IAM role Tableau ALB created with ARN: ${tableua}`);
-  // });
 
   // Create small RDS instance for EMR to store metadata information
   const { rds } = configureRds(env);
@@ -67,6 +60,8 @@ export const start = (env: string) => {
   // Create EMR cluster
   const emr = configureEmrCluster(env, rds, s3);
   emr.arn.apply((emrArn) => log('info', `EMR cluster created with ARN: ${emrArn}`));
+  const emrjpt = configureJupyterCluster(env, rds, s3, jupyter);
+  emrjpt.arn.apply((emrArn) => log('info', `EMR (Jupyter) cluster created with ARN: ${emrArn}`));
 
   // Create ALB instances
   const albs = configureAlbs({ env, ec2: tableau, emr });
