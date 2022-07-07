@@ -25,10 +25,10 @@ config:
   data-platform:emr:
     applications:
     - Hadoop
+    - Hive
+    - Presto
     - Spark
     - Sqoop
-    - Presto
-    - Hive
     coreInstanceGroup:
       ebsConfigs:
       - size: 32
@@ -58,11 +58,11 @@ config:
   data-platform:jupyter:
     applications:
     - Hadoop
-    - Spark
-    - JupyterHub
-    - JupyterEnterpriseGateway
-    - Livy
     - Hive
+    - JupyterEnterpriseGateway
+    - JupyterHub
+    - Livy
+    - Spark
     coreInstanceGroup:
       ebsConfigs:
       - size: 32
