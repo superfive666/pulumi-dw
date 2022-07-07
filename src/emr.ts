@@ -63,12 +63,12 @@ export const configureJupyterCluster = (
           's3.persistence.bucket': s3.id
         }
       },
-      {
-        Classification: 'spark',
-        Properties: {
-          maximizeResourceAllocation: 'true'
-        }
-      },
+      // {
+      //   Classification: 'spark',
+      //   Properties: {
+      //     maximizeResourceAllocation: 'true'
+      //   }
+      // },
       {
         Classification: 'spark-defaults',
         Properties: {

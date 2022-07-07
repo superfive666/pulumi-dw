@@ -86,8 +86,9 @@ const createNetworkLoadBalancer = (
   });
 
   const albTg = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-alb`, {
-    protocol: 'TCP',
     port: 443,
+    protocol: 'TCP',
+    targetType: 'alb',
     vpcId,
     tags: { ...baseTags }
   });
@@ -102,7 +103,7 @@ const createNetworkLoadBalancer = (
   );
 
   new aws.lb.Listener(`app-mpdw-${env}-nlb`, {
-    loadBalancerArn: alb.arn,
+    loadBalancerArn: lb.arn,
     port: 443,
     protocol: 'TCP',
     defaultActions: [
