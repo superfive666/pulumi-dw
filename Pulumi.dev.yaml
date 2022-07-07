@@ -5,17 +5,10 @@ config:
     baseDomain: deeppos.com
     certificateArn: arn:aws:acm:us-west-2:767433672128:certificate/0f774621-aa35-4b39-b170-03dbf90821bc
     securityGroups:
-      emr:
-      - sg-06d20113a2442ba4a
-      tableau:
-      - sg-07cf03280c61118cc
+    - sg-07cf03280c61118cc
     subnets:
-      emr:
-      - subnet-0e3034af4767091ff
-      - subnet-05c8b23fd13c76ce2
-      tableau:
-      - subnet-0e3034af4767091ff
-      - subnet-05c8b23fd13c76ce2
+    - subnet-0e3034af4767091ff
+    - subnet-05c8b23fd13c76ce2
     vpcId: vpc-09afec90cd3db53e6
   data-platform:ec2:
     ami: ami-0b152cfd354c4c7a4

@@ -62,6 +62,21 @@ export const configureJupyterCluster = (
           's3.persistence.enabled': 'true',
           's3.persistence.bucket': s3.id
         }
+      },
+      {
+        Classification: 'spark',
+        Properties: {
+          maximizeResourceAllocation: 'true'
+        }
+      },
+      {
+        Classification: 'spark-defaults',
+        Properties: {
+          'spark.dynamicAllocation.enabled': 'false',
+          'spark.executor.memory': '1G',
+          'spark.driver.memory ': '1G',
+          'spark.emr.default.executor.memory': '1G'
+        }
       }
     ])
     .apply((v) => JSON.stringify(v));
@@ -149,6 +164,15 @@ export const configureEmrCluster = (
           'javax.jdo.option.ConnectionUserName': 'root',
           'javax.jdo.option.ConnectionPassword': password,
           'hive.blobstore.use.output-committer': 'true'
+        }
+      },
+      {
+        Classification: 'spark-defaults',
+        Properties: {
+          'spark.dynamicAllocation.enabled': 'false',
+          'spark.executor.memory': '1G',
+          'spark.driver.memory ': '1G',
+          'spark.emr.default.executor.memory': '1G'
         }
       }
     ])
