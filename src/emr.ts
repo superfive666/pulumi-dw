@@ -111,7 +111,7 @@ export const configureJupyterCluster = (
     },
     {
       dependsOn: [rds, s3, log, instanceProfile],
-      ignoreChanges: ['applications', 'configurationsJson']
+      ignoreChanges: ['applications', 'configurationsJson', 'logUri']
     }
   );
 
@@ -208,7 +208,10 @@ export const configureEmrCluster = (
 
       tags
     },
-    { dependsOn: [rds, s3, instanceProfile], ignoreChanges: ['applications', 'configurationsJson'] }
+    {
+      dependsOn: [rds, s3, instanceProfile],
+      ignoreChanges: ['applications', 'configurationsJson', 'logUri']
+    }
   );
 
   return emr;

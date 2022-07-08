@@ -1,6 +1,8 @@
 import * as pulumi from '@pulumi/pulumi';
 import * as aws from '@pulumi/aws';
 
+import { log } from '..';
+
 const pulumiProject = pulumi.getProject();
 const stack = pulumi.getStack();
 const baseTags: aws.Tags = {
@@ -183,24 +185,26 @@ const createTargetGroups = (
     port: 9443
   });
   // register target
-  jpt.masterInstanceGroup.id.apply((instanceGroupId) => {
-    aws.ec2
-      .getInstances({ filters: [{ name: 'instance.group-id', values: [instanceGroupId] }] })
-      .then(({ ids }) => {
-        ids.forEach((id, index) => {
-          new aws.lb.TargetGroupAttachment(
-            `app-mpdw-${env}-jpt${index}`,
-            {
-              targetGroupArn: jupyterHub.arn,
-              targetId: id,
-              port: 9443
-            },
-            {
-              dependsOn: [jupyterHub, jpt]
-            }
-          );
-        });
-      });
+  jpt.masterInstanceGroup.id.apply(async (instanceGroupId) => {
+    const { ids } = await aws.ec2.getInstances({
+      filters: [{ name: 'instance.group-id', values: [instanceGroupId] }]
+    });
+
+    log('info', `The instance IDs for jupyter master nodes are: ${ids}`);
+
+    ids.forEach((id, index) => {
+      new aws.lb.TargetGroupAttachment(
+        `app-mpdw-${env}-jpt${index}`,
+        {
+          targetGroupArn: jupyterHub.arn,
+          targetId: id,
+          port: 9443
+        },
+        {
+          dependsOn: [jupyterHub, jpt]
+        }
+      );
+    });
   });
 
   // master-public-dns-name
@@ -248,26 +252,28 @@ const createTargetGroups = (
   ];
 
   // register target
-  emr.masterInstanceGroup.id.apply((instanceGroupId) => {
-    aws.ec2
-      .getInstances({ filters: [{ name: 'instance.group-id', values: [instanceGroupId] }] })
-      .then(({ ids }) => {
-        ids.forEach((id) => {
-          tgs.forEach((tg) => {
-            new aws.lb.TargetGroupAttachment(
-              `${tg.tg.name}`,
-              {
-                targetGroupArn: tg.tg.arn,
-                targetId: id,
-                port: tg.port
-              },
-              {
-                dependsOn: [tg.tg, emr]
-              }
-            );
-          });
-        });
+  emr.masterInstanceGroup.id.apply(async (instanceGroupId) => {
+    const { ids } = await aws.ec2.getInstances({
+      filters: [{ name: 'instance.group-id', values: [instanceGroupId] }]
+    });
+
+    log('info', `The instance IDs for EMR master nodes are: ${ids}`);
+
+    ids.forEach((id) => {
+      tgs.forEach((tg) => {
+        new aws.lb.TargetGroupAttachment(
+          `${tg.tg.name}`,
+          {
+            targetGroupArn: tg.tg.arn,
+            targetId: id,
+            port: tg.port
+          },
+          {
+            dependsOn: [tg.tg, emr]
+          }
+        );
       });
+    });
   });
 
   return { tableau, tableausm, jupyterHub, livy, spark, presto, hue, hadoop, yarn };
