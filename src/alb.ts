@@ -104,6 +104,24 @@ const createInternalListener = (
   createListenerRule(`app-mpdw-${env}-yarn`, listener, yarn.arn, baseDomain, 'yarn');
   createListenerRule(`app-mpdw-${env}-hadoop`, listener, hadoop.arn, baseDomain, 'hadoop');
 
+  // Create redirection rule to force https access to ALB
+  new aws.lb.Listener(`app-mpdw-${env}-80`, {
+    loadBalancerArn: alb.arn,
+    port: 80,
+    protocol: 'HTTP',
+    defaultActions: [
+      {
+        type: 'redirect',
+        redirect: {
+          port: '443',
+          protocol: 'HTTPS',
+          statusCode: 'HTTP_301'
+        }
+      }
+    ],
+    tags: baseTags
+  });
+
   return listener;
 };
 
