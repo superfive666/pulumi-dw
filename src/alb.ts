@@ -287,7 +287,7 @@ const createInternalAlb = (
 ): aws.lb.LoadBalancer => {
   const lbName = `app-mpdw-lb-${env}`;
   const lb = new aws.lb.LoadBalancer(lbName, {
-    internal: true,
+    internal: false,
     loadBalancerType: 'application',
     securityGroups,
     subnets,
