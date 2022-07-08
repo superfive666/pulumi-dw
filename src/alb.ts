@@ -217,7 +217,7 @@ const createTargetGroups = (
         {
           resourceId: id,
           key: 'Name',
-          value: `Jupyter Master Node ${index}`
+          value: `app-mpdw-jupyter-master-${index}`
         },
         { dependsOn: [jpt] }
       );
@@ -237,7 +237,7 @@ const createTargetGroups = (
         {
           resourceId: id,
           key: 'Name',
-          value: `Jupyter Core Node ${index}`
+          value: `app-mpdw-jupyter-core-${index}`
         },
         { dependsOn: [jpt] }
       );
@@ -322,7 +322,7 @@ const createTargetGroups = (
         {
           resourceId: id,
           key: 'Name',
-          value: `EMR Master Node ${index}`
+          value: `app-mpdw-emr-master-${index}`
         },
         { dependsOn: [emr] }
       );
@@ -342,7 +342,7 @@ const createTargetGroups = (
         {
           resourceId: id,
           key: 'Name',
-          value: `EMR Core Node ${index}`
+          value: `app-mpdw-emr-core-${index}`
         },
         { dependsOn: [jpt] }
       );
