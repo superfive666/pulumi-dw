@@ -185,16 +185,22 @@ const createTargetGroups = (
     port: 9443
   });
   // register target
-  jpt.masterInstanceGroup.id.apply(async (instanceGroupId) => {
+  jpt.id.apply(async (clusterId) => {
+    log('info', `The Jupyter master cluster id: ${clusterId}`);
+
     const { ids } = await aws.ec2.getInstances({
-      filters: [{ name: 'instance.group-id', values: [instanceGroupId] }]
+      filters: [
+        { name: 'tag:aws:elasticmapreduce:job-flow-id', values: [clusterId] },
+        { name: 'tag:aws:elasticmapreduce:instance-group-role', values: ['MASTER'] }
+      ]
     });
 
     log('info', `The instance IDs for jupyter master nodes are: ${ids}`);
 
     ids.forEach((id, index) => {
+      // register the master instances to target groups
       new aws.lb.TargetGroupAttachment(
-        `app-mpdw-${env}-jpt${index}`,
+        `jupyter-${id}`,
         {
           targetGroupArn: jupyterHub.arn,
           targetId: id,
@@ -203,6 +209,37 @@ const createTargetGroups = (
         {
           dependsOn: [jupyterHub, jpt]
         }
+      );
+
+      // adding additional tags to these ec2 instances
+      new aws.ec2.Tag(
+        `jupyter-${id}`,
+        {
+          resourceId: id,
+          key: 'Name',
+          value: `Jupyter Master Node ${index}`
+        },
+        { dependsOn: [jpt] }
+      );
+    });
+
+    const { ids: cores } = await aws.ec2.getInstances({
+      filters: [
+        { name: 'tag:aws:elasticmapreduce:job-flow-id', values: [clusterId] },
+        { name: 'tag:aws:elasticmapreduce:instance-group-role', values: ['CORE'] }
+      ]
+    });
+
+    cores.forEach((id, index) => {
+      // adding additional tags to these ec2 instances
+      new aws.ec2.Tag(
+        `jupyterc-${id}`,
+        {
+          resourceId: id,
+          key: 'Name',
+          value: `Jupyter Core Node ${index}`
+        },
+        { dependsOn: [jpt] }
       );
     });
   });
@@ -242,27 +279,32 @@ const createTargetGroups = (
     ...properties,
     port: 9870
   });
-  const tgs: { tg: aws.lb.TargetGroup; port: number }[] = [
-    { tg: presto, port: 8889 },
-    { tg: hue, port: 8888 },
-    { tg: spark, port: 18080 },
-    { tg: yarn, port: 8088 },
-    { tg: livy, port: 8998 },
-    { tg: hadoop, port: 9870 }
+  const tgs: { tg: aws.lb.TargetGroup; name: string; port: number }[] = [
+    { tg: presto, name: 'presto', port: 8889 },
+    { tg: hue, name: 'hue', port: 8888 },
+    { tg: spark, name: 'spark', port: 18080 },
+    { tg: yarn, name: 'yarn', port: 8088 },
+    { tg: livy, name: 'livy', port: 8998 },
+    { tg: hadoop, name: 'hadoop', port: 9870 }
   ];
 
   // register target
-  emr.masterInstanceGroup.id.apply(async (instanceGroupId) => {
+  emr.id.apply(async (clusterId) => {
+    log('info', `The EMR master cluster id: ${clusterId}`);
+
     const { ids } = await aws.ec2.getInstances({
-      filters: [{ name: 'instance.group-id', values: [instanceGroupId] }]
+      filters: [
+        { name: 'tag:aws:elasticmapreduce:job-flow-id', values: [clusterId] },
+        { name: 'tag:aws:elasticmapreduce:instance-group-role', values: ['MASTER'] }
+      ]
     });
 
     log('info', `The instance IDs for EMR master nodes are: ${ids}`);
 
-    ids.forEach((id) => {
+    ids.forEach((id, index) => {
       tgs.forEach((tg) => {
         new aws.lb.TargetGroupAttachment(
-          `${tg.tg.name}`,
+          `${tg.name}-${id}`,
           {
             targetGroupArn: tg.tg.arn,
             targetId: id,
@@ -273,6 +315,37 @@ const createTargetGroups = (
           }
         );
       });
+
+      // adding additional tags to these ec2 instances
+      new aws.ec2.Tag(
+        `emr-${id}`,
+        {
+          resourceId: id,
+          key: 'Name',
+          value: `EMR Master Node ${index}`
+        },
+        { dependsOn: [emr] }
+      );
+    });
+
+    const { ids: cores } = await aws.ec2.getInstances({
+      filters: [
+        { name: 'tag:aws:elasticmapreduce:job-flow-id', values: [clusterId] },
+        { name: 'tag:aws:elasticmapreduce:instance-group-role', values: ['CORE'] }
+      ]
+    });
+
+    cores.forEach((id, index) => {
+      // adding additional tags to these ec2 instances
+      new aws.ec2.Tag(
+        `emr-${id}`,
+        {
+          resourceId: id,
+          key: 'Name',
+          value: `EMR Core Node ${index}`
+        },
+        { dependsOn: [jpt] }
+      );
     });
   });
 

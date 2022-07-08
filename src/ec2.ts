@@ -19,6 +19,7 @@ export const configureEc2Instance = (env: string): aws.ec2.Instance => {
     'pulumi:Stack': stack,
     Project: 'mpdw',
     purpose: 'tableau',
+    Name: 'Tableau Server'
   };
 
   const config = new pulumi.Config();
