@@ -184,8 +184,12 @@ const createTargetGroups = (
 
   const tableausm = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-tsm`, {
     ...properties,
-    port: 8850,
-    protocol: 'HTTPS'
+    port: 443,
+    protocol: 'HTTPS',
+    healthCheck: {
+      port: '80',
+      protocol: 'HTTP'
+    }
   });
   new aws.lb.TargetGroupAttachment(
     `app-mpdw-tgatt-${env}-tsm`,
@@ -200,7 +204,8 @@ const createTargetGroups = (
   // master-public-dns-name
   const jupyterHub = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-jh`, {
     ...properties,
-    port: 9443
+    port: 443,
+    protocol: 'HTTPS'
   });
   // register target
   jpt.id.apply(async (clusterId) => {
@@ -265,13 +270,19 @@ const createTargetGroups = (
   // master-public-dns-name
   const presto = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-presto`, {
     ...properties,
-    port: 8889
+    port: 8889,
+    healthCheck: {
+      matcher: '200-400'
+    }
   });
 
   // master-public-dns-name
   const airflow = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-airflow`, {
     ...properties,
-    port: 8888
+    port: 8888,
+    healthCheck: {
+      matcher: '200-400'
+    }
   });
 
   // master-public-dns-name
@@ -283,7 +294,10 @@ const createTargetGroups = (
   // master-public-dns-name
   const yarn = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-yarn`, {
     ...properties,
-    port: 8088
+    port: 8088,
+    healthCheck: {
+      matcher: '200-400'
+    }
   });
 
   // master-public-dns-name
