@@ -64,7 +64,7 @@ export const start = (env: string) => {
   emrjpt.arn.apply((emrArn) => log('info', `EMR (Jupyter) cluster created with ARN: ${emrArn}`));
 
   // Create ALB instances
-  const albs = configureAlbs({ env, ec2: tableau, emr });
+  const albs = configureAlbs({ env, ec2: tableau, emr, jpt: emrjpt });
 
   return {
     s3,

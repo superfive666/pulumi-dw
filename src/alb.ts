@@ -21,26 +21,28 @@ interface IAlbConfigurationProps {
   env: string;
   ec2: aws.ec2.Instance;
   emr: aws.emr.Cluster;
+  jpt: aws.emr.Cluster;
 }
 
 interface IAlbSettings {
   internal: aws.lb.LoadBalancer;
   targetGroups: ITargetGroups;
   internalListener: aws.lb.Listener;
-  nlb: aws.lb.LoadBalancer;
 }
 
 interface ITargetGroups {
   tableau: aws.lb.TargetGroup;
   tableausm: aws.lb.TargetGroup;
-  jupyterHub: aws.lb.TargetGroup;
-  livy: aws.lb.TargetGroup;
-  spark: aws.lb.TargetGroup;
-  hdfs: aws.lb.TargetGroup;
   presto: aws.lb.TargetGroup;
+  hue: aws.lb.TargetGroup;
+  spark: aws.lb.TargetGroup;
+  yarn: aws.lb.TargetGroup;
+  livy: aws.lb.TargetGroup;
+  hadoop: aws.lb.TargetGroup;
+  jupyterHub: aws.lb.TargetGroup;
 }
 
-export const configureAlbs = ({ env, ec2 }: IAlbConfigurationProps): IAlbSettings => {
+export const configureAlbs = ({ env, ec2, emr, jpt }: IAlbConfigurationProps): IAlbSettings => {
   const config = new pulumi.Config();
   const { vpcId, subnets, securityGroups, certificateArn, baseDomain } =
     config.requireObject<IAlbConfigs>('alb');
@@ -50,7 +52,7 @@ export const configureAlbs = ({ env, ec2 }: IAlbConfigurationProps): IAlbSetting
 
   // Create target groups
   // Create target group attachment settings in order to register instances to the load balancer
-  const targetGroups = createTargetGroups(env, vpcId, ec2);
+  const targetGroups = createTargetGroups(env, vpcId, ec2, emr, jpt);
 
   // Create load balancer listeners and their respective listener rules
   const internalListener = createInternalListener(
@@ -61,62 +63,7 @@ export const configureAlbs = ({ env, ec2 }: IAlbConfigurationProps): IAlbSetting
     targetGroups
   );
 
-  const nlb = createNetworkLoadBalancer(env, internal, subnets, vpcId);
-
-  return { internal, targetGroups, internalListener, nlb };
-};
-
-const createNetworkLoadBalancer = (
-  env: string,
-  alb: aws.lb.LoadBalancer,
-  subnets: string[],
-  vpcId: string
-): aws.lb.LoadBalancer => {
-  const lbName = `app-mpdw-nlb-${env}`;
-  // Network load balancers do not support security group configuration
-  const lb = new aws.lb.LoadBalancer(lbName, {
-    internal: false,
-    loadBalancerType: 'network',
-    subnets,
-    enableDeletionProtection: false,
-    tags: {
-      ...baseTags,
-      'alb-type': 'network'
-    }
-  });
-
-  const albTg = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-alb`, {
-    port: 443,
-    protocol: 'TCP',
-    targetType: 'alb',
-    vpcId,
-    tags: { ...baseTags }
-  });
-  new aws.lb.TargetGroupAttachment(
-    `app-mpdw-${env}-alb`,
-    {
-      targetGroupArn: albTg.arn,
-      targetId: alb.arn,
-      port: 443
-    },
-    { dependsOn: [albTg, alb] }
-  );
-
-  new aws.lb.Listener(`app-mpdw-${env}-nlb`, {
-    loadBalancerArn: lb.arn,
-    port: 443,
-    protocol: 'TCP',
-    defaultActions: [
-      {
-        type: 'forward',
-        targetGroupArn: albTg.arn
-      }
-    ],
-    tags: baseTags
-  });
-  
-
-  return lb;
+  return { internal, targetGroups, internalListener };
 };
 
 const createInternalListener = (
@@ -124,7 +71,7 @@ const createInternalListener = (
   alb: aws.lb.LoadBalancer,
   certificateArn: string,
   baseDomain: string,
-  { tableau, tableausm, jupyterHub, livy, spark, hdfs, presto }: ITargetGroups
+  { tableau, tableausm, jupyterHub, livy, spark, hue, presto, yarn, hadoop }: ITargetGroups
 ): aws.lb.Listener => {
   const listener = new aws.lb.Listener(`app-mpdw-${env}`, {
     loadBalancerArn: alb.arn,
@@ -150,8 +97,10 @@ const createInternalListener = (
   createListenerRule(`app-mpdw-${env}-jp`, listener, jupyterHub.arn, baseDomain, 'jupyter');
   createListenerRule(`app-mpdw-${env}-livy`, listener, livy.arn, baseDomain, 'livy');
   createListenerRule(`app-mpdw-${env}-spark`, listener, spark.arn, baseDomain, 'spark');
-  createListenerRule(`app-mpdw-${env}-hdfs`, listener, hdfs.arn, baseDomain, 'hdfs');
+  createListenerRule(`app-mpdw-${env}-hue`, listener, hue.arn, baseDomain, 'hue');
   createListenerRule(`app-mpdw-${env}-presto`, listener, presto.arn, baseDomain, 'presto');
+  createListenerRule(`app-mpdw-${env}-yarn`, listener, yarn.arn, baseDomain, 'yarn');
+  createListenerRule(`app-mpdw-${env}-hadoop`, listener, hadoop.arn, baseDomain, 'hadoop');
 
   return listener;
 };
@@ -186,7 +135,13 @@ const createListenerRule = (
   );
 };
 
-const createTargetGroups = (env: string, vpcId: string, ec2: aws.ec2.Instance): ITargetGroups => {
+const createTargetGroups = (
+  env: string,
+  vpcId: string,
+  ec2: aws.ec2.Instance,
+  emr: aws.emr.Cluster,
+  jpt: aws.emr.Cluster
+): ITargetGroups => {
   const properties = {
     protocol: 'HTTP',
     vpcId,
@@ -204,7 +159,7 @@ const createTargetGroups = (env: string, vpcId: string, ec2: aws.ec2.Instance): 
       targetId: ec2.id,
       port: 80
     },
-    { dependsOn: [tableau] }
+    { dependsOn: [tableau, ec2] }
   );
 
   const tableausm = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-tsm`, {
@@ -219,13 +174,57 @@ const createTargetGroups = (env: string, vpcId: string, ec2: aws.ec2.Instance): 
       targetId: ec2.id,
       port: 8850
     },
-    { dependsOn: [tableausm] }
+    { dependsOn: [tableausm, ec2] }
   );
 
   // master-public-dns-name
   const jupyterHub = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-jh`, {
     ...properties,
     port: 9443
+  });
+  // register target
+  jpt.masterInstanceGroup.id.apply((instanceGroupId) => {
+    aws.ec2
+      .getInstances({ filters: [{ name: 'instance.group-id', values: [instanceGroupId] }] })
+      .then(({ ids }) => {
+        ids.forEach((id, index) => {
+          new aws.lb.TargetGroupAttachment(
+            `app-mpdw-${env}-jpt${index}`,
+            {
+              targetGroupArn: jupyterHub.arn,
+              targetId: id,
+              port: 9443
+            },
+            {
+              dependsOn: [jupyterHub, jpt]
+            }
+          );
+        });
+      });
+  });
+
+  // master-public-dns-name
+  const presto = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-presto`, {
+    ...properties,
+    port: 8889
+  });
+
+  // master-public-dns-name
+  const hue = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-hue`, {
+    ...properties,
+    port: 8888
+  });
+
+  // master-public-dns-name
+  const spark = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-spark`, {
+    ...properties,
+    port: 18080
+  });
+
+  // master-public-dns-name
+  const yarn = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-yarn`, {
+    ...properties,
+    port: 8088
   });
 
   // master-public-dns-name
@@ -235,24 +234,43 @@ const createTargetGroups = (env: string, vpcId: string, ec2: aws.ec2.Instance): 
   });
 
   // master-public-dns-name
-  const spark = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-spark`, {
-    ...properties,
-    port: 8998
-  });
-
-  // master-public-dns-name
-  const hdfs = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-hdfs`, {
+  const hadoop = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-hadoop`, {
     ...properties,
     port: 9870
   });
+  const tgs: { tg: aws.lb.TargetGroup; port: number }[] = [
+    { tg: presto, port: 8889 },
+    { tg: hue, port: 8888 },
+    { tg: spark, port: 18080 },
+    { tg: yarn, port: 8088 },
+    { tg: livy, port: 8998 },
+    { tg: hadoop, port: 9870 }
+  ];
 
-  // master-public-dns-name
-  const presto = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-presto`, {
-    ...properties,
-    port: 8889
+  // register target
+  emr.masterInstanceGroup.id.apply((instanceGroupId) => {
+    aws.ec2
+      .getInstances({ filters: [{ name: 'instance.group-id', values: [instanceGroupId] }] })
+      .then(({ ids }) => {
+        ids.forEach((id) => {
+          tgs.forEach((tg) => {
+            new aws.lb.TargetGroupAttachment(
+              `${tg.tg.name}`,
+              {
+                targetGroupArn: tg.tg.arn,
+                targetId: id,
+                port: tg.port
+              },
+              {
+                dependsOn: [tg.tg, emr]
+              }
+            );
+          });
+        });
+      });
   });
 
-  return { tableau, tableausm, jupyterHub, livy, spark, hdfs, presto };
+  return { tableau, tableausm, jupyterHub, livy, spark, presto, hue, hadoop, yarn };
 };
 
 /**
