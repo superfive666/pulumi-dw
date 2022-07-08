@@ -36,7 +36,7 @@ interface ITargetGroups {
   tableau: aws.lb.TargetGroup;
   tableausm: aws.lb.TargetGroup;
   presto: aws.lb.TargetGroup;
-  hue: aws.lb.TargetGroup;
+  airflow: aws.lb.TargetGroup;
   spark: aws.lb.TargetGroup;
   yarn: aws.lb.TargetGroup;
   livy: aws.lb.TargetGroup;
@@ -73,7 +73,7 @@ const createInternalListener = (
   alb: aws.lb.LoadBalancer,
   certificateArn: string,
   baseDomain: string,
-  { tableau, tableausm, jupyterHub, livy, spark, hue, presto, yarn, hadoop }: ITargetGroups
+  { tableau, tableausm, jupyterHub, livy, spark, presto, yarn, hadoop, airflow }: ITargetGroups
 ): aws.lb.Listener => {
   const listener = new aws.lb.Listener(`app-mpdw-${env}`, {
     loadBalancerArn: alb.arn,
@@ -94,15 +94,15 @@ const createInternalListener = (
     tags: baseTags
   });
 
-  createListenerRule(`app-mpdw-${env}-tbl`, listener, tableau.arn, baseDomain, 'tableau');
-  createListenerRule(`app-mpdw-${env}-tsm`, listener, tableausm.arn, baseDomain, 'tableausm');
-  createListenerRule(`app-mpdw-${env}-jp`, listener, jupyterHub.arn, baseDomain, 'jupyter');
+  createListenerRule(`app-mpdw-${env}-tbl`, listener, tableau.arn, baseDomain, 'dp');
+  createListenerRule(`app-mpdw-${env}-tsm`, listener, tableausm.arn, baseDomain, 'tsm');
+  createListenerRule(`app-mpdw-${env}-jp`, listener, jupyterHub.arn, baseDomain, 'jpt');
   createListenerRule(`app-mpdw-${env}-livy`, listener, livy.arn, baseDomain, 'livy');
   createListenerRule(`app-mpdw-${env}-spark`, listener, spark.arn, baseDomain, 'spark');
-  createListenerRule(`app-mpdw-${env}-hue`, listener, hue.arn, baseDomain, 'hue');
   createListenerRule(`app-mpdw-${env}-presto`, listener, presto.arn, baseDomain, 'presto');
   createListenerRule(`app-mpdw-${env}-yarn`, listener, yarn.arn, baseDomain, 'yarn');
   createListenerRule(`app-mpdw-${env}-hadoop`, listener, hadoop.arn, baseDomain, 'hadoop');
+  createListenerRule(`app-mpdw-${env}-airflow`, listener, airflow.arn, baseDomain, 'afl');
 
   // Create redirection rule to force https access to ALB
   new aws.lb.Listener(`app-mpdw-${env}-80`, {
@@ -145,7 +145,7 @@ const createListenerRule = (
       conditions: [
         {
           hostHeader: {
-            values: [`${domain}.dataplatform.${baseDomain}`]
+            values: [`${domain}.${baseDomain}`]
           }
         }
       ],
@@ -269,7 +269,7 @@ const createTargetGroups = (
   });
 
   // master-public-dns-name
-  const hue = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-hue`, {
+  const airflow = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-airflow`, {
     ...properties,
     port: 8888
   });
@@ -299,7 +299,7 @@ const createTargetGroups = (
   });
   const tgs: { tg: aws.lb.TargetGroup; name: string; port: number }[] = [
     { tg: presto, name: 'presto', port: 8889 },
-    { tg: hue, name: 'hue', port: 8888 },
+    { tg: airflow, name: 'airflow', port: 8888 },
     { tg: spark, name: 'spark', port: 18080 },
     { tg: yarn, name: 'yarn', port: 8088 },
     { tg: livy, name: 'livy', port: 8998 },
@@ -367,7 +367,7 @@ const createTargetGroups = (
     });
   });
 
-  return { tableau, tableausm, jupyterHub, livy, spark, presto, hue, hadoop, yarn };
+  return { tableau, tableausm, jupyterHub, livy, spark, presto, airflow, hadoop, yarn };
 };
 
 /**
