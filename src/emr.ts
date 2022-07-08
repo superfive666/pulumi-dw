@@ -109,7 +109,10 @@ export const configureJupyterCluster = (
 
       tags
     },
-    { dependsOn: [rds, s3, log, instanceProfile] }
+    {
+      dependsOn: [rds, s3, log, instanceProfile],
+      ignoreChanges: ['applications', 'configurationsJson']
+    }
   );
 
   new aws.emr.ManagedScalingPolicy(`app-mpdw-scaling-${env}`, {
@@ -205,7 +208,7 @@ export const configureEmrCluster = (
 
       tags
     },
-    { dependsOn: [rds, s3, instanceProfile] }
+    { dependsOn: [rds, s3, instanceProfile], ignoreChanges: ['applications', 'configurationsJson'] }
   );
 
   return emr;
