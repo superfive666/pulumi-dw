@@ -14,6 +14,7 @@ export const log = (level: 'info' | 'warning' | 'error', message: string) => {
 
 export const createVpc = () => {
   // VPC creation only valid for `dev` environment as this is for the POC stage
+  //
   const env = 'dev';
 
   // Create required VPC for the data-platform
