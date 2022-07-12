@@ -185,11 +185,7 @@ const createTargetGroups = (
   const tableausm = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-tsm`, {
     ...properties,
     port: 443,
-    protocol: 'HTTPS',
-    healthCheck: {
-      port: '80',
-      protocol: 'HTTP'
-    }
+    protocol: 'HTTPS'
   });
   new aws.lb.TargetGroupAttachment(
     `app-mpdw-tgatt-${env}-tsm`,
