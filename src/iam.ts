@@ -26,30 +26,30 @@ export const configureIamRoles = (): IIamRoleSettings => {
 const createEmrRole = (): aws.iam.Role => {
   const roleName = 'APP_MPDW_EMR_ROLE';
   const purpose = 'emr';
-  const documents = ['elasticmapreduce.amazonaws.com'];
+  const identifiers = ['elasticmapreduce.amazonaws.com'];
 
-  return createRole(roleName, purpose, documents);
+  return createRole(roleName, purpose, identifiers);
 };
 
 const createEc2Role = (): aws.iam.Role => {
   const roleName = 'APP_MPDW_EC2_ROLE';
   const purpose = 'tableau';
-  const documents = ['ec2.amazonaws.com'];
+  const identifiers = ['ec2.amazonaws.com'];
 
-  return createRole(roleName, purpose, documents);
+  return createRole(roleName, purpose, identifiers);
 };
 
 const createScalingRole = (): aws.iam.Role => {
   const roleName = 'APP_MPDW_SCALING_ROLE';
   const purpose = 'scaling';
-  const documents = ['application-autoscaling.amazonaws.com', 'elasticmapreduce.amazonaws.com'];
+  const identifiers = ['application-autoscaling.amazonaws.com', 'elasticmapreduce.amazonaws.com'];
 
-  return createRole(roleName, purpose, documents);
+  return createRole(roleName, purpose, identifiers);
 };
 
-const createRole = (roleName: string, purpose: string, documents: string[]): aws.iam.Role => {
+const createRole = (roleName: string, purpose: string, identifiers: string[]): aws.iam.Role => {
   const role = new aws.iam.Role(roleName, {
-    assumeRolePolicy: getPolicyDocument(documents).then((policy) => policy.json),
+    assumeRolePolicy: getPolicyDocument(identifiers).then((policy) => policy.json),
     tags: {
       ...baseTags,
       purpose,
