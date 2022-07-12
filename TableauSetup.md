@@ -83,6 +83,27 @@ tsm initialize --start-server --request-timeout 1800
 tabcmd initialuser --server 'localhost:80' --username 'admin' --password 'admin'
 ```
 
+For setting up with remote LDAP change the `config.json` file with the following example template content before execute the `tsm pending-changes apply` command:
+
+```
+{
+  "configEntities":{
+    "identityStore": {
+    "_type": "identityStoreType",
+    "type": "activedirectory",
+    "domain": "bitdeer-inc",
+    "port": "389",
+    "nickname": "",
+    "directoryServiceType": "activedirectory",
+    "hostname": "bitdeer-inc.com",
+    "bind": "simple",
+    "username": "*",
+    "password": "*"
+    }
+  }
+}
+```
+
 ## Tableau Server JDBC Driver Setup 
 
 Make sure the following scripts are executed using the `tbladmin` user created earlier.
