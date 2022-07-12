@@ -70,34 +70,6 @@ const getPolicyDocument = (identifiers: string[]): Promise<aws.iam.GetPolicyDocu
   });
 };
 
-const instanceAssumePolic = aws.iam.getPolicyDocument({
-  statements: [
-    {
-      actions: ['sts:AssumeRole'],
-      principals: [
-        {
-          type: 'Service',
-          identifiers: ['ec2.amazonaws.com']
-        }
-      ]
-    }
-  ]
-});
-
-const instanceEmrAssumePolic = aws.iam.getPolicyDocument({
-  statements: [
-    {
-      principals: [
-        {
-          type: 'Service',
-          identifiers: ['elasticmapreduce.amazonaws.com']
-        }
-      ],
-      actions: ['sts:AssumeRole']
-    }
-  ]
-});
-
 const createTableauPolicy = (arn: string): aws.iam.Policy => {
   const timestamp = new Date().toISOString();
   const policy = new aws.iam.Policy('app-mpdw-tableau-policy', {
