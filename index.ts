@@ -43,7 +43,7 @@ export const start = (env: string) => {
   log('info', 'Pulumi deployment started...');
 
   // Create the S3 bucket for EMR to store necessary HDFS files
-  const { log: s3, jupyter } = configureS3Bucket(env);
+  const { log: s3, jupyter, data } = configureS3Bucket(env);
   s3.id.apply((s3BucketId) => {
     log('info', `S3 bucket ID ${s3BucketId} created successfully`);
   });
@@ -69,6 +69,8 @@ export const start = (env: string) => {
 
   return {
     s3,
+    jupyter,
+    data,
     emr,
     rds,
     tableau,
