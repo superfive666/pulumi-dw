@@ -5,7 +5,8 @@ import { log } from '..';
 
 interface IIamRoleSettings {
   emr: aws.iam.Role;
-  tableau: aws.iam.Role;
+  ec2: aws.iam.Role;
+  scaling: aws.iam.Role;
 }
 
 const pulumiProject = pulumi.getProject();
@@ -18,7 +19,8 @@ const baseTags: aws.Tags = {
 
 export const configureIamRoles = (s3: aws.s3.Bucket): IIamRoleSettings => {
   const emr = createEmrRole();
-  const tableau = createTableauRole();
+  const ec2 = createEc2Role();
+  const scaling = createScalingRole();
 
   s3.arn.apply((arn: string) => {
     const emrPolicy = createEmrPolicy(arn);
@@ -38,7 +40,7 @@ export const configureIamRoles = (s3: aws.s3.Bucket): IIamRoleSettings => {
     const attachTableau = new aws.iam.RolePolicyAttachment(
       'app-mpdw-tableau-role-attachment',
       {
-        role: tableau.name,
+        role: ec2.name,
         policyArn: tableauPolicy.arn
       },
       { dependsOn: [s3] }
@@ -49,10 +51,26 @@ export const configureIamRoles = (s3: aws.s3.Bucket): IIamRoleSettings => {
     );
   });
 
-  return { emr, tableau };
+  return { emr, ec2, scaling };
 };
 
-const instanceAssumePolicy = aws.iam.getPolicyDocument({
+const getPolicyDocument = (identifiers: string[]): Promise<aws.iam.GetPolicyDocumentResult> => {
+  return aws.iam.getPolicyDocument({
+    statements: [
+      {
+        actions: ['sts:AssumeRole'],
+        principals: [
+          {
+            type: 'Service',
+            identifiers
+          }
+        ]
+      }
+    ]
+  });
+};
+
+const instanceAssumePolic = aws.iam.getPolicyDocument({
   statements: [
     {
       actions: ['sts:AssumeRole'],
@@ -66,7 +84,7 @@ const instanceAssumePolicy = aws.iam.getPolicyDocument({
   ]
 });
 
-const instanceEmrAssumePolicy = aws.iam.getPolicyDocument({
+const instanceEmrAssumePolic = aws.iam.getPolicyDocument({
   statements: [
     {
       principals: [
@@ -141,23 +159,44 @@ const createEmrPolicy = (arn: string): aws.iam.Policy => {
 const createEmrRole = (): aws.iam.Role => {
   const roleName = 'APP_MPDW_EMR_ROLE';
   const role = new aws.iam.Role(roleName, {
-    assumeRolePolicy: instanceEmrAssumePolicy.then((policy) => policy.json),
+    assumeRolePolicy: getPolicyDocument(['elasticmapreduce.amazonaws.com']).then(
+      (policy) => policy.json
+    ),
     tags: {
       ...baseTags,
-      purpose: 'emr'
+      purpose: 'emr',
+      Name: roleName
     }
   });
 
   return role;
 };
 
-const createTableauRole = (): aws.iam.Role => {
-  const roleName = 'APP_MPDW_TABLEAU_ROLE';
+const createEc2Role = (): aws.iam.Role => {
+  const roleName = 'APP_MPDW_EC2_ROLE';
   const role = new aws.iam.Role(roleName, {
-    assumeRolePolicy: instanceAssumePolicy.then((policy) => policy.json),
+    assumeRolePolicy: getPolicyDocument(['ec2.amazonaws.com']).then((policy) => policy.json),
     tags: {
       ...baseTags,
-      purpose: 'tableau'
+      purpose: 'tableau',
+      Name: roleName
+    }
+  });
+
+  return role;
+};
+
+const createScalingRole = (): aws.iam.Role => {
+  const roleName = 'APP_MPDW_SCALING_ROLE';
+  const role = new aws.iam.Role(roleName, {
+    assumeRolePolicy: getPolicyDocument([
+      'application-autoscaling.amazonaws.com',
+      'elasticmapreduce.amazonaws.com'
+    ]).then((policy) => policy.json),
+    tags: {
+      ...baseTags,
+      purpose: 'scaling',
+      Name: roleName
     }
   });
 
