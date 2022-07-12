@@ -44,6 +44,7 @@ config:
       serviceAccessSecurityGroup: sg-0abd6b2c24e71c1d3
       subnetIds:
       - subnet-040e514ad8e58af5d
+    ldapUserBind: ITDSAMPTBL@bitdeer-inc.com
     masterInstanceGroup:
       ebsConfigs:
       - size: 32

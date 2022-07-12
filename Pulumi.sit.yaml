@@ -25,10 +25,10 @@ config:
   data-platform:emr:
     applications:
     - Hadoop
+    - Hive
+    - Presto
     - Spark
     - Sqoop
-    - Presto
-    - Hive
     coreInstanceGroup:
       ebsConfigs:
       - size: 32
@@ -44,6 +44,7 @@ config:
       serviceAccessSecurityGroup: sg-0abd6b2c24e71c1d3
       subnetIds:
       - subnet-040e514ad8e58af5d
+    ldapUserBind: ITDSAMPTBL@bitdeer-inc.com
     masterInstanceGroup:
       ebsConfigs:
       - size: 32
@@ -58,11 +59,11 @@ config:
   data-platform:jupyter:
     applications:
     - Hadoop
-    - Spark
-    - JupyterHub
-    - JupyterEnterpriseGateway
-    - Livy
     - Hive
+    - JupyterEnterpriseGateway
+    - JupyterHub
+    - Livy
+    - Spark
     coreInstanceGroup:
       ebsConfigs:
       - size: 32
@@ -92,11 +93,11 @@ config:
   data-platform:masterPassword:
     secure: AAABAFaW233CwlYrpaOC2imJHncUwh4Sl8pKcM2sMMqam7pSDsH7pwLbMydfEME=
   data-platform:rds:
-    allocatedStorage: 30
+    allocatedStorage: 50
     engine: mysql
     engineVersion: 8.0.29
     iamDatabaseAuthenticationEnabled: true
-    instanceClass: db.t3.small
+    instanceClass: db.t3.xlarge 
     masterUsername: root
     port: 3306
     storageType: gp2

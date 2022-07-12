@@ -138,4 +138,7 @@ tsm configuration set -k vizqlserver.session.expiry.timeout -v 120
 
 # Enable subscriptions
 tsm configuration set -k subscriptions.enabled -v true
+
+# Apply pending changes for the above 2 settings
+tsm pending-changes apply
 ```

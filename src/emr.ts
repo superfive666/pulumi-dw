@@ -9,6 +9,7 @@ interface IEmrSettings {
   osReleaseLabel: string;
   releaseLabel: string;
   scaleDownBehavior: string;
+  ldapUserBind?: string;
   coreInstanceGroup: input.emr.ClusterCoreInstanceGroup;
   masterInstanceGroup: input.emr.ClusterMasterInstanceGroup;
   ec2Attributes: input.emr.ClusterEc2Attributes;
@@ -29,7 +30,7 @@ export const configureJupyterCluster = (
   log: aws.s3.Bucket,
   s3: aws.s3.Bucket,
   ec2Role: aws.iam.Role,
-  emrRole: aws.iam.Role, 
+  emrRole: aws.iam.Role,
   scalingRole: aws.iam.Role
 ): aws.emr.Cluster => {
   const config = new pulumi.Config();
@@ -149,6 +150,7 @@ export const configureEmrCluster = (
     ebsRootVolumeSize,
     coreInstanceGroup,
     masterInstanceGroup,
+    ldapUserBind,
     ec2Attributes
   } = config.requireObject<IEmrSettings>('emr');
 
@@ -175,6 +177,20 @@ export const configureEmrCluster = (
           'spark.executor.memory': '1G',
           'spark.driver.memory ': '1G',
           'spark.emr.default.executor.memory': '1G'
+        }
+      },
+      {
+        Classification: 'prestosql-config',
+        Properties: {
+          'http-server.authentication.type': 'PASSWORD'
+        }
+      },
+      {
+        Classification: 'prestosql-password-authenticator',
+        Properties: {
+          'password-authenticator.name': 'ldap',
+          'ldap.url': 'ldaps://bitdeer-inc.com:636',
+          'ldap.user-bind-pattern': ldapUserBind
         }
       }
     ])
