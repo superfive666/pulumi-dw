@@ -28,7 +28,23 @@ const createEmrRole = (): aws.iam.Role => {
   const purpose = 'emr';
   const identifiers = ['elasticmapreduce.amazonaws.com'];
 
-  return createRole(roleName, purpose, identifiers);
+  const role = createRole(roleName, purpose, identifiers);
+
+  // Attach the following policies to the default EMR role: (all roles are managed by AWS)
+  // 1. AmazonElasticMapReduceRole
+  // 2. AmazonElasticMapReducePlacementGroupPolicy
+  createAttachment(
+    'app_mpdw_emr1',
+    role,
+    'arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole'
+  );
+  createAttachment(
+    'app_mpdw_emr2',
+    role,
+    'arn:aws:iam::aws:policy/AmazonElasticMapReducePlacementGroupPolicy'
+  );
+
+  return role;
 };
 
 const createEc2Role = (): aws.iam.Role => {
@@ -36,7 +52,27 @@ const createEc2Role = (): aws.iam.Role => {
   const purpose = 'tableau';
   const identifiers = ['ec2.amazonaws.com'];
 
-  return createRole(roleName, purpose, identifiers);
+  const role = createRole(roleName, purpose, identifiers);
+
+  // Attach the following policies to the default EC2 role: (all roles are managed by AWS)
+  // 1. AmazonEC2RoleforSSM (this is for ssh into the instance using the AWS cloud shell, it is optional)
+  // Note that the above policy will be deprecated soon:
+  // Please use AmazonSSMManagedInstanceCore policy to enable AWS Systems Manager service core functionality on EC2 instances. For more information see https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-instance-profile.html
+  // 2. AmazonElasticMapReduceforEC2Role
+  // 3. AmazonSSMManagedInstanceCore
+  createAttachment(
+    'app_mpdw_ec21',
+    role,
+    'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM'
+  );
+  createAttachment(
+    'app_mpdw_ec22',
+    role,
+    'arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role'
+  );
+  createAttachment('app_mpdw_ec23', role, 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore');
+
+  return role;
 };
 
 const createScalingRole = (): aws.iam.Role => {
@@ -44,7 +80,34 @@ const createScalingRole = (): aws.iam.Role => {
   const purpose = 'scaling';
   const identifiers = ['application-autoscaling.amazonaws.com', 'elasticmapreduce.amazonaws.com'];
 
-  return createRole(roleName, purpose, identifiers);
+  const role = createRole(roleName, purpose, identifiers);
+
+  // Attach the following policies to the default Scaling role: (all roles are managed by AWS)
+  // 1. AmazonElasticMapReduceforAutoScalingRole
+  createAttachment(
+    'app_mpdw_scaling',
+    role,
+    'arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforAutoScalingRole'
+  );
+
+  return role;
+};
+
+const createAttachment = (
+  attachmentName: string,
+  role: aws.iam.Role,
+  policyArn: string
+): aws.iam.RolePolicyAttachment => {
+  return new aws.iam.RolePolicyAttachment(
+    attachmentName,
+    {
+      role: role.name,
+      policyArn
+    },
+    {
+      dependsOn: [role]
+    }
+  );
 };
 
 const createRole = (roleName: string, purpose: string, identifiers: string[]): aws.iam.Role => {
