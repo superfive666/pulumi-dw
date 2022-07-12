@@ -122,3 +122,20 @@ sudo mkdir -p tableau_driver/jdbc
 cd tableau_driver/jdbc 
 sudo wget https://repo1.maven.org/maven2/com/facebook/presto/presto-jdbc/0.273.3/presto-jdbc-0.273.3.jar 
 ```
+
+
+## Tableau Server Post Installation configuration
+
+The following configuration is required after post installation steps.
+
+Make sure the following scripts are executed using the `tbladmin` user created earlier.
+
+Use `su - tbladmin` to re-login to the user if the ssh pipe was broken.
+
+```
+# Update the timeout settings
+tsm configuration set -k vizqlserver.session.expiry.timeout -v 120
+
+# Enable subscriptions
+tsm configuration set -k subscriptions.enabled -v true
+```
