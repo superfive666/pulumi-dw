@@ -82,3 +82,21 @@ tsm initialize --start-server --request-timeout 1800
 # feel free to update the username password for the default user of the tableau dashboard
 tabcmd initialuser --server 'localhost:80' --username 'admin' --password 'admin'
 ```
+
+## Tableau Server JDBC Driver Setup 
+
+Make sure the following scripts are executed using the `tbladmin` user created earlier.
+
+Use `su - tbladmin` to re-login to the user if the ssh pipe was broken.
+
+```
+# Go to the directory where tableau was installed
+cd /opt/tableau
+
+# Create directory if not exits
+sudo mkdir -p tableau_driver/jdbc 
+
+# Download the respective driver jar into this directory 
+cd tableau_driver/jdbc 
+sudo wget https://repo1.maven.org/maven2/com/facebook/presto/presto-jdbc/0.273.3/presto-jdbc-0.273.3.jar 
+```
