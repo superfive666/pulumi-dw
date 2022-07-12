@@ -11,7 +11,7 @@ interface IEc2Config {
   vpcSecurityGroupIds: string[];
 }
 
-export const configureEc2Instance = (env: string): aws.ec2.Instance => {
+export const configureEc2Instance = (env: string, role: aws.iam.Role): aws.ec2.Instance => {
   const pulumiProject = pulumi.getProject();
   const stack = pulumi.getStack();
   const tags: aws.Tags = {
@@ -42,7 +42,7 @@ export const configureEc2Instance = (env: string): aws.ec2.Instance => {
   const profileName = `app-mpdw-prf-${env}-ec2`;
   const iamInstanceProfile = new aws.iam.InstanceProfile(profileName, {
     name: profileName,
-    role: 'EMR_EC2_DefaultRole',
+    role: role.name,
     tags
   });
 

@@ -27,7 +27,10 @@ export const configureJupyterCluster = (
   env: string,
   rds: aws.rds.Instance,
   log: aws.s3.Bucket,
-  s3: aws.s3.Bucket
+  s3: aws.s3.Bucket,
+  ec2Role: aws.iam.Role,
+  emrRole: aws.iam.Role, 
+  scalingRole: aws.iam.Role
 ): aws.emr.Cluster => {
   const config = new pulumi.Config();
   const {
@@ -78,7 +81,7 @@ export const configureJupyterCluster = (
   const profileName = `app-mpdw-prf-${env}-emrjpt`;
   const instanceProfile = new aws.iam.InstanceProfile(profileName, {
     name: profileName,
-    role: 'EMR_EC2_DefaultRole',
+    role: ec2Role,
     tags
   });
 
@@ -90,8 +93,8 @@ export const configureJupyterCluster = (
       // EMR config
       applications,
       releaseLabel,
-      serviceRole: 'EMR_DefaultRole',
-      autoscalingRole: 'EMR_AutoScaling_DefaultRole',
+      serviceRole: emrRole.name,
+      autoscalingRole: scalingRole.name,
       terminationProtection: false,
       scaleDownBehavior,
       configurationsJson,
@@ -134,7 +137,9 @@ export const configureJupyterCluster = (
 export const configureEmrCluster = (
   env: string,
   rds: aws.rds.Instance,
-  s3: aws.s3.Bucket
+  s3: aws.s3.Bucket,
+  ec2Role: aws.iam.Role,
+  emrRole: aws.iam.Role
 ): aws.emr.Cluster => {
   const config = new pulumi.Config();
   const {
@@ -178,7 +183,7 @@ export const configureEmrCluster = (
   const profileName = `app-mpdw-prf-${env}-emr`;
   const instanceProfile = new aws.iam.InstanceProfile(profileName, {
     name: profileName,
-    role: 'EMR_EC2_DefaultRole',
+    role: ec2Role,
     tags
   });
 
@@ -190,7 +195,7 @@ export const configureEmrCluster = (
       // EMR config
       applications,
       releaseLabel,
-      serviceRole: 'EMR_DefaultRole',
+      serviceRole: emrRole.name,
       terminationProtection: false,
       scaleDownBehavior,
       configurationsJson,
