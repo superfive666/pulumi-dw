@@ -83,6 +83,7 @@ tsm initialize --start-server --request-timeout 1800
 tabcmd initialuser --server 'localhost:80' --username 'admin' --password 'admin'
 ```
 
+For setting up with the SSO, it can be achieved in UI when first time login into the TSM backend server at port 8850.
 For setting up with remote LDAP change the `config.json` file with the following example template content before execute the `tsm pending-changes apply` command:
 
 ```
