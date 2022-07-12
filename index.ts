@@ -13,7 +13,7 @@ export const log = (level: 'info' | 'warning' | 'error', message: string) => {
   console.log(formatted);
 };
 
-export const createVpc = () => {
+const createVpc = () => {
   // VPC creation only valid for `dev` environment as this is for the POC stage
   const env = 'dev';
 
@@ -40,7 +40,7 @@ export const createVpc = () => {
   return { vpc, securityGroups };
 };
 
-export const start = (env: string) => {
+const start = (env: string) => {
   log('info', 'Pulumi deployment started...');
 
   // Create necessary IAM roles for the stack
