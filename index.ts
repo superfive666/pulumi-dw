@@ -3,8 +3,8 @@ import * as pulumi from '@pulumi/pulumi';
 import { configureVpc } from './src/vpc';
 import { configureRds } from './src/rds';
 import { configureAlbs } from './src/alb';
-import { configureIamRoles } from './src/iam';
 import { configureS3Bucket } from './src/s3';
+import { configureIamRoles } from './src/iam';
 import { configureEc2Instance } from './src/ec2';
 import { configureEmrCluster, configureJupyterCluster } from './src/emr';
 
