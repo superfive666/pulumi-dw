@@ -266,19 +266,13 @@ const createTargetGroups = (
   // master-public-dns-name
   const presto = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-presto`, {
     ...properties,
-    port: 8889,
-    healthCheck: {
-      matcher: '200-400'
-    }
+    port: 8889
   });
 
   // master-public-dns-name
   const airflow = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-airflow`, {
     ...properties,
-    port: 8888,
-    healthCheck: {
-      matcher: '200-400'
-    }
+    port: 8888
   });
 
   // master-public-dns-name
@@ -290,10 +284,7 @@ const createTargetGroups = (
   // master-public-dns-name
   const yarn = new aws.lb.TargetGroup(`app-mpdw-tg-${env}-yarn`, {
     ...properties,
-    port: 8088,
-    healthCheck: {
-      matcher: '200-400'
-    }
+    port: 8088
   });
 
   // master-public-dns-name

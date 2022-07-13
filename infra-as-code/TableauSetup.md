@@ -139,6 +139,9 @@ tsm configuration set -k vizqlserver.session.expiry.timeout -v 120
 # Enable subscriptions
 tsm configuration set -k subscriptions.enabled -v true
 
+# change default server authentication token max age 
+tsm configuration set -k wgserver.saml.maxauthenticationage -v 2100000000
+
 # Apply pending changes for the above 2 settings
 tsm pending-changes apply
 ```
