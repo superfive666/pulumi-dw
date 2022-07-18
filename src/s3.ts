@@ -66,7 +66,7 @@ export const configureS3BucketPolicy = ({
             NotPrincipal: {
               AWS: [emr.emr.arn, emr.jpt.arn, ec2.emr.arn, ec2.jpt.arn]
             },
-            Action: 's3:*',
+            Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
             Resource: [
               pulumi.interpolate`arn:aws:s3:::${rdlBucket.id}`,
               pulumi.interpolate`arn:aws:s3:::${rdlBucket.id}/*`
@@ -87,7 +87,7 @@ export const configureS3BucketPolicy = ({
             NotPrincipal: {
               AWS: [emr.emr.arn, emr.jpt.arn, ec2.emr.arn, ec2.jpt.arn]
             },
-            Action: 's3:*',
+            Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
             Resource: [
               pulumi.interpolate`arn:aws:s3:::${sdlBucket.id}`,
               pulumi.interpolate`arn:aws:s3:::${sdlBucket.id}/*`
@@ -108,7 +108,7 @@ export const configureS3BucketPolicy = ({
             NotPrincipal: {
               AWS: [emr.emr.arn, emr.jpt.arn, ec2.emr.arn, ec2.jpt.arn]
             },
-            Action: 's3:*',
+            Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
             Resource: [
               pulumi.interpolate`arn:aws:s3:::${adlBucket.id}`,
               pulumi.interpolate`arn:aws:s3:::${adlBucket.id}/*`

@@ -3,9 +3,9 @@ import * as pulumi from '@pulumi/pulumi';
 import { configureVpc } from './src/vpc';
 import { configureRds } from './src/rds';
 import { configureAlbs } from './src/alb';
-import { configureS3Bucket } from './src/s3';
 import { configureIamRoles } from './src/iam';
 import { configureEc2Instance } from './src/ec2';
+import { configureS3Bucket, configureS3BucketPolicy } from './src/s3';
 import { configureEmrCluster, configureJupyterCluster } from './src/emr';
 
 export const log = (level: 'info' | 'warning' | 'error', message: string) => {
@@ -58,12 +58,25 @@ const start = (env: string) => {
   // Create necessary IAM roles for the stack
   const {
     emrEmr,
-    emrJpt, 
+    emrJpt,
     ec2Emr,
     ec2Jpt,
     ec2Tbl,
     scaling: scalingRole
   } = configureIamRoles({ env, rdl, sdl, adl });
+
+  const {
+    rdl: rdlPolicy,
+    sdl: sdlPolicy,
+    adl: adlPolicy
+  } = configureS3BucketPolicy({
+    env,
+    rdl,
+    sdl,
+    adl,
+    emr: { emr: emrEmr, jpt: emrJpt },
+    ec2: { emr: ec2Emr, jpt: ec2Jpt }
+  });
 
   // Create small RDS instance for EMR to store metadata information
   const { rds } = configureRds(env);
@@ -93,6 +106,9 @@ const start = (env: string) => {
     emr,
     rds,
     tableau,
+    rdlPolicy,
+    sdlPolicy,
+    adlPolicy,
     ...albs
   };
 };
