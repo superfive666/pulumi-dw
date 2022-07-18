@@ -11,6 +11,27 @@ interface IS3BucketOutput {
   adl: aws.s3.Bucket;
 }
 
+interface IS3BucketPolicyOutput {
+  rdl: aws.s3.BucketPolicy;
+  sdl: aws.s3.BucketPolicy;
+  adl: aws.s3.BucketPolicy;
+}
+
+interface IS3BucketPolicyProps {
+  env: string;
+  rdl: aws.s3.Bucket;
+  sdl: aws.s3.Bucket;
+  adl: aws.s3.Bucket;
+  emr: {
+    emr: aws.iam.Role;
+    jpt: aws.iam.Role;
+  };
+  ec2: {
+    emr: aws.iam.Role;
+    jpt: aws.iam.Role;
+  };
+}
+
 const blockOpts: AccountPublicAccessBlockArgs = {
   blockPublicAcls: true,
   blockPublicPolicy: true,
@@ -26,7 +47,80 @@ const baseTags: aws.Tags = {
   'pulumi:Stack': stack
 };
 
-export const configureS3BucketPolicy = () => {};
+export const configureS3BucketPolicy = ({
+  env,
+  rdl: rdlBucket,
+  sdl: sdlBucket,
+  adl: adlBucket,
+  emr,
+  ec2
+}: IS3BucketPolicyProps): IS3BucketPolicyOutput => {
+  const rdl = new aws.s3.BucketPolicy(`rdl-${env}`, {
+    bucket: rdlBucket.id,
+    policy: pulumi
+      .output({
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Deny',
+            NotPrincipal: {
+              AWS: [emr.emr.arn, emr.jpt.arn, ec2.emr.arn, ec2.jpt.arn]
+            },
+            Action: 's3:*',
+            Resource: [
+              pulumi.interpolate`arn:aws:s3:::${rdlBucket.id}`,
+              pulumi.interpolate`arn:aws:s3:::${rdlBucket.id}/*`
+            ]
+          }
+        ]
+      })
+      .apply((v) => JSON.stringify(v))
+  });
+  const sdl = new aws.s3.BucketPolicy(`rdl-${env}`, {
+    bucket: sdlBucket.id,
+    policy: pulumi
+      .output({
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Deny',
+            NotPrincipal: {
+              AWS: [emr.emr.arn, emr.jpt.arn, ec2.emr.arn, ec2.jpt.arn]
+            },
+            Action: 's3:*',
+            Resource: [
+              pulumi.interpolate`arn:aws:s3:::${sdlBucket.id}`,
+              pulumi.interpolate`arn:aws:s3:::${sdlBucket.id}/*`
+            ]
+          }
+        ]
+      })
+      .apply((v) => JSON.stringify(v))
+  });
+  const adl = new aws.s3.BucketPolicy(`rdl-${env}`, {
+    bucket: adlBucket.id,
+    policy: pulumi
+      .output({
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Deny',
+            NotPrincipal: {
+              AWS: [emr.emr.arn, emr.jpt.arn, ec2.emr.arn, ec2.jpt.arn]
+            },
+            Action: 's3:*',
+            Resource: [
+              pulumi.interpolate`arn:aws:s3:::${adlBucket.id}`,
+              pulumi.interpolate`arn:aws:s3:::${adlBucket.id}/*`
+            ]
+          }
+        ]
+      })
+      .apply((v) => JSON.stringify(v))
+  });
+
+  return { rdl, sdl, adl };
+};
 
 export const configureS3Bucket = (env: string): IS3BucketOutput => {
   const log = createBucket(`app-mpdw-${env}-log`, 'emr');
