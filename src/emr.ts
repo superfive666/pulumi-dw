@@ -150,7 +150,6 @@ export const configureEmrCluster = (
     ebsRootVolumeSize,
     coreInstanceGroup,
     masterInstanceGroup,
-    ldapUserBind,
     ec2Attributes
   } = config.requireObject<IEmrSettings>('emr');
 
@@ -177,20 +176,6 @@ export const configureEmrCluster = (
           'spark.executor.memory': '1G',
           'spark.driver.memory ': '1G',
           'spark.emr.default.executor.memory': '1G'
-        }
-      },
-      {
-        Classification: 'trino-config',
-        Properties: {
-          'http-server.authentication.type': 'PASSWORD'
-        }
-      },
-      {
-        Classification: 'trino-password-authenticator',
-        Properties: {
-          'password-authenticator.name': 'ldap',
-          'ldap.url': 'ldaps://bitdeer-inc.com:636',
-          'ldap.user-bind-pattern': ldapUserBind
         }
       }
     ])
