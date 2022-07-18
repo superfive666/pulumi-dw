@@ -180,13 +180,13 @@ export const configureEmrCluster = (
         }
       },
       {
-        Classification: 'prestosql-config',
+        Classification: 'trino-config',
         Properties: {
           'http-server.authentication.type': 'PASSWORD'
         }
       },
       {
-        Classification: 'prestosql-password-authenticator',
+        Classification: 'trino-password-authenticator',
         Properties: {
           'password-authenticator.name': 'ldap',
           'ldap.url': 'ldaps://bitdeer-inc.com:636',
@@ -230,8 +230,8 @@ export const configureEmrCluster = (
       tags
     },
     {
-      dependsOn: [rds, s3, instanceProfile],
-      ignoreChanges: ['applications', 'configurationsJson', 'logUri']
+      dependsOn: [rds, s3, instanceProfile]
+      // ignoreChanges: ['applications', 'configurationsJson', 'logUri']
     }
   );
 

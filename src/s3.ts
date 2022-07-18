@@ -5,80 +5,62 @@ import { CannedAcl, AccountPublicAccessBlockArgs } from '@pulumi/aws/s3';
 
 interface IS3BucketOutput {
   log: aws.s3.Bucket;
-  data: aws.s3.Bucket;
   jupyter: aws.s3.Bucket;
+  rdl: aws.s3.Bucket;
+  sdl: aws.s3.Bucket;
+  adl: aws.s3.Bucket;
 }
 
+const blockOpts: AccountPublicAccessBlockArgs = {
+  blockPublicAcls: true,
+  blockPublicPolicy: true,
+  ignorePublicAcls: true,
+  restrictPublicBuckets: true
+};
+
+const pulumiProject = pulumi.getProject();
+const stack = pulumi.getStack();
+const baseTags: aws.Tags = {
+  Project: 'mpdw',
+  'pulumi:Project': pulumiProject,
+  'pulumi:Stack': stack
+};
+
+export const configureS3BucketPolicy = () => {};
+
 export const configureS3Bucket = (env: string): IS3BucketOutput => {
-  const pulumiProject = pulumi.getProject();
-  const stack = pulumi.getStack();
-  const baseTags: aws.Tags = {
-    Project: 'mpdw',
-    'pulumi:Project': pulumiProject,
-    'pulumi:Stack': stack
-  };
-
-  const blockOpts: AccountPublicAccessBlockArgs = {
-    blockPublicAcls: true,
-    blockPublicPolicy: true,
-    ignorePublicAcls: true,
-    restrictPublicBuckets: true
-  };
-
-  const logName = `app-mpdw-${env}-log`;
-  const log = new aws.s3.Bucket(logName, {
-    acl: CannedAcl.Private,
-    tags: {
-      ...baseTags,
-      purpose: 'emr'
-    }
-  });
-  new aws.s3.BucketPublicAccessBlock(
-    logName,
-    {
-      ...blockOpts,
-      bucket: log.id
-    },
-    { dependsOn: [log] }
-  );
-
-  const dataName = `app-mpdw-${env}-data`;
-  const data = new aws.s3.Bucket(dataName, {
-    acl: CannedAcl.Private,
-    tags: {
-      ...baseTags,
-      purpose: 'emr-data'
-    }
-  });
-  new aws.s3.BucketPublicAccessBlock(
-    dataName,
-    {
-      ...blockOpts,
-      bucket: data.id
-    },
-    { dependsOn: [data] }
-  );
-
-  const jupyterName = `app-mpdw-${env}-jpt`;
-  const jupyter = new aws.s3.Bucket(jupyterName, {
-    acl: CannedAcl.Private,
-    tags: {
-      ...baseTags,
-      purpose: 'emr-jpt'
-    }
-  });
-  new aws.s3.BucketPublicAccessBlock(
-    jupyterName,
-    {
-      ...blockOpts,
-      bucket: jupyter.id
-    },
-    { dependsOn: [jupyter] }
-  );
+  const log = createBucket(`app-mpdw-${env}-log`, 'emr');
+  const rdl = createBucket(`app-mpdw-${env}-rdl`, 'emr-rdl');
+  const sdl = createBucket(`app-mpdw-${env}-sdl`, 'emr-sdl');
+  const adl = createBucket(`app-mpdw-${env}-adl`, 'emr-adl');
+  const jupyter = createBucket(`app-mpdw-${env}-jpt`, 'emr-jpt');
 
   return {
     log,
-    data,
-    jupyter
+    jupyter,
+    rdl,
+    sdl,
+    adl
   };
+};
+
+const createBucket = (bucketName: string, purpose: string): aws.s3.Bucket => {
+  const bucket = new aws.s3.Bucket(bucketName, {
+    acl: CannedAcl.Private,
+    tags: {
+      ...baseTags,
+      purpose
+    }
+  });
+
+  new aws.s3.BucketPublicAccessBlock(
+    bucketName,
+    {
+      ...blockOpts,
+      bucket: bucket.id
+    },
+    { dependsOn: [bucket] }
+  );
+
+  return bucket;
 };

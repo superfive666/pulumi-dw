@@ -43,29 +43,42 @@ const createVpc = () => {
 const start = (env: string) => {
   log('info', 'Pulumi deployment started...');
 
-  // Create necessary IAM roles for the stack
-  const { emr: emrRole, ec2: ec2Role, scaling: scalingRole } = configureIamRoles();
-
   // Create the S3 bucket for EMR to store necessary HDFS files
-  const { log: s3, jupyter, data } = configureS3Bucket(env);
-  s3.id.apply((s3BucketId) => {
-    log('info', `S3 bucket ID ${s3BucketId} created successfully`);
-  });
+  const { log: s3, jupyter, rdl, sdl, adl } = configureS3Bucket(env);
+  pulumi
+    .all([s3.id, jupyter.id, rdl.id, sdl.id, adl.id])
+    .apply(([s3Id, jptId, rdlId, sdlId, adlId]) => {
+      log('info', `S3 bucket ID ${s3Id} created successfully`);
+      log('info', `S3 bucket ID ${jptId} created successfully`);
+      log('info', `S3 bucket ID ${rdlId} created successfully`);
+      log('info', `S3 bucket ID ${sdlId} created successfully`);
+      log('info', `S3 bucket ID ${adlId} created successfully`);
+    });
+
+  // Create necessary IAM roles for the stack
+  const {
+    emrEmr,
+    emrJpt, 
+    ec2Emr,
+    ec2Jpt,
+    ec2Tbl,
+    scaling: scalingRole
+  } = configureIamRoles({ env, rdl, sdl, adl });
 
   // Create small RDS instance for EMR to store metadata information
   const { rds } = configureRds(env);
   rds.arn.apply((rdsArn) => log('info', `RDS for EMR metatdata created with ARN: ${rdsArn}`));
 
   // Create EC2 instance for installation of Tableau
-  const tableau = configureEc2Instance(env, ec2Role);
+  const tableau = configureEc2Instance(env, ec2Tbl);
   tableau.arn.apply((ec2Arn) =>
     log('info', `EC2 instance for installing tableau created with ARN: ${ec2Arn}`)
   );
 
   // Create EMR cluster
-  const emr = configureEmrCluster(env, rds, s3, ec2Role, emrRole);
+  const emr = configureEmrCluster(env, rds, s3, ec2Emr, emrEmr);
   emr.arn.apply((emrArn) => log('info', `EMR cluster created with ARN: ${emrArn}`));
-  const emrjpt = configureJupyterCluster(env, rds, s3, jupyter, ec2Role, emrRole, scalingRole);
+  const emrjpt = configureJupyterCluster(env, rds, s3, jupyter, ec2Jpt, emrJpt, scalingRole);
   emrjpt.arn.apply((emrArn) => log('info', `EMR (Jupyter) cluster created with ARN: ${emrArn}`));
 
   // Create ALB instances
@@ -74,7 +87,9 @@ const start = (env: string) => {
   return {
     s3,
     jupyter,
-    data,
+    rdl,
+    sdl,
+    adl,
     emr,
     rds,
     tableau,

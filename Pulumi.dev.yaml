@@ -29,7 +29,6 @@ config:
     - Presto
     - Spark
     - Sqoop
-    - Trino
     coreInstanceGroup:
       ebsConfigs:
       - size: 32
