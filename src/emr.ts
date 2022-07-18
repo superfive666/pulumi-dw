@@ -215,8 +215,8 @@ export const configureEmrCluster = (
       tags
     },
     {
-      dependsOn: [rds, s3, instanceProfile]
-      // ignoreChanges: ['applications', 'configurationsJson', 'logUri']
+      dependsOn: [rds, s3, instanceProfile],
+      ignoreChanges: ['applications', 'configurationsJson', 'logUri']
     }
   );
 
