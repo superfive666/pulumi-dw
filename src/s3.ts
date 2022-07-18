@@ -76,7 +76,7 @@ export const configureS3BucketPolicy = ({
       })
       .apply((v) => JSON.stringify(v))
   });
-  const sdl = new aws.s3.BucketPolicy(`rdl-${env}`, {
+  const sdl = new aws.s3.BucketPolicy(`sdl-${env}`, {
     bucket: sdlBucket.id,
     policy: pulumi
       .output({
@@ -97,7 +97,7 @@ export const configureS3BucketPolicy = ({
       })
       .apply((v) => JSON.stringify(v))
   });
-  const adl = new aws.s3.BucketPolicy(`rdl-${env}`, {
+  const adl = new aws.s3.BucketPolicy(`adl-${env}`, {
     bucket: adlBucket.id,
     policy: pulumi
       .output({
