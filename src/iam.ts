@@ -195,35 +195,35 @@ export const configureIamRoles = ({ env, rdl, sdl, adl }: IIamRoleProps): IIamRo
     })
   );
   const rdlRead = createS3BucketPolicy({
-    name: `EmrRdlReadOnly${env.toUpperCase}`,
+    name: `EmrRdlReadOnly${env.toUpperCase()}`,
     description: 'Allow read access to RDL S3 bucket',
     s3: rdl,
     readonly: true
   });
   const rdlWrite = createS3BucketPolicy({
-    name: `EmrRdlWrite${env.toUpperCase}`,
+    name: `EmrRdlWrite${env.toUpperCase()}`,
     description: 'Allow write access to RDL S3 bucket',
     s3: rdl
   });
   const sdlRead = createS3BucketPolicy({
-    name: `EmrSdlReadOnly${env.toUpperCase}`,
+    name: `EmrSdlReadOnly${env.toUpperCase()}`,
     description: 'Allow read access to SDL S3 bucket',
     s3: sdl,
     readonly: true
   });
   const sdlWrite = createS3BucketPolicy({
-    name: `EmrSdlWrite${env.toUpperCase}`,
+    name: `EmrSdlWrite${env.toUpperCase()}`,
     description: 'Allow write access to SDL S3 bucket',
     s3: sdl
   });
   const adlRead = createS3BucketPolicy({
-    name: `EmrAdlReadOnly${env.toUpperCase}`,
+    name: `EmrAdlReadOnly${env.toUpperCase()}`,
     description: 'Allow read access to ADL S3 bucket',
     s3: adl,
     readonly: true
   });
   const adlWrite = createS3BucketPolicy({
-    name: `EmrAdlWrite${env.toUpperCase}`,
+    name: `EmrAdlWrite${env.toUpperCase()}`,
     description: 'Allow write access to ADL S3 bucket',
     s3: adl
   });
