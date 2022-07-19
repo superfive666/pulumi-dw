@@ -236,7 +236,7 @@ export const configureIamRoles = ({ env, rdl, sdl, adl, jupyter, s3 }: IIamRoleP
     readonly: true
   });
   const s3Write = createS3BucketPolicy({
-    name: `EmrAdlWrite${env.toUpperCase()}`,
+    name: `EmrLogWrite${env.toUpperCase()}`,
     description: 'Allow write access to EMR Logs S3 bucket',
     s3
   });
