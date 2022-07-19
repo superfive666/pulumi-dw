@@ -15,6 +15,8 @@ interface IIamRoleProps {
   rdl: aws.s3.Bucket;
   sdl: aws.s3.Bucket;
   adl: aws.s3.Bucket;
+  jupyter: aws.s3.Bucket;
+  s3: aws.s3.Bucket;
 }
 
 interface IS3IamPolicyProps {
@@ -37,7 +39,7 @@ const baseTags: aws.Tags = {
   'pulumi:Stack': stack
 };
 
-export const configureIamRoles = ({ env, rdl, sdl, adl }: IIamRoleProps): IIamRoleSettings => {
+export const configureIamRoles = ({ env, rdl, sdl, adl, jupyter, s3 }: IIamRoleProps): IIamRoleSettings => {
   const modifiedEmrPolicy = createPolicy(
     `AmazonEmrRole${env.toUpperCase()}`,
     'This is the role created by modifying based on the AWS management role arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole, the changes include removing the unnecessary s3 access which need to be controlled',
@@ -227,6 +229,28 @@ export const configureIamRoles = ({ env, rdl, sdl, adl }: IIamRoleProps): IIamRo
     description: 'Allow write access to ADL S3 bucket',
     s3: adl
   });
+  const s3Read = createS3BucketPolicy({
+    name: `EmrLogReadOnly${env.toUpperCase()}`,
+    description: 'Allow read access to EMR Logs S3 bucket',
+    s3,
+    readonly: true
+  });
+  const s3Write = createS3BucketPolicy({
+    name: `EmrAdlWrite${env.toUpperCase()}`,
+    description: 'Allow write access to EMR Logs S3 bucket',
+    s3
+  });
+  const jptRead = createS3BucketPolicy({
+    name: `JupyterReadOnly${env.toUpperCase()}`,
+    description: 'Allow read access to Jupyter Notebook S3 bucket',
+    s3: jupyter,
+    readonly: true
+  });
+  const jptWrite = createS3BucketPolicy({
+    name: `JupyterWrite${env.toUpperCase()}`,
+    description: 'Allow write access to Jupyter Notebook S3 bucket',
+    s3: jupyter
+  });
 
   const emrEmr = createEmrRole(`EMR_${env}`, [
     { name: 'emr_emr1', policy: modifiedEmrPolicy.arn },
@@ -236,7 +260,8 @@ export const configureIamRoles = ({ env, rdl, sdl, adl }: IIamRoleProps): IIamRo
     },
     { name: 'emr_emr3', policy: rdlRead.arn },
     { name: 'emr_emr4', policy: sdlRead.arn },
-    { name: 'emr_emr5', policy: adlRead.arn }
+    { name: 'emr_emr5', policy: adlRead.arn },
+    { name: 'emr_emr6', policy: s3Read.arn }
   ]);
   const emrJpt = createEmrRole(`JPT_${env}`, [
     { name: 'emr_jpt1', policy: modifiedEmrPolicy.arn },
@@ -246,7 +271,9 @@ export const configureIamRoles = ({ env, rdl, sdl, adl }: IIamRoleProps): IIamRo
     },
     { name: 'emr_jpt3', policy: rdlRead.arn },
     { name: 'emr_jpt4', policy: sdlRead.arn },
-    { name: 'emr_jpt5', policy: adlRead.arn }
+    { name: 'emr_jpt5', policy: adlRead.arn },
+    { name: 'emr_jpt6', policy: s3Read.arn },
+    { name: 'emr_jpt7', policy: jptRead.arn }
   ]);
   const ec2Emr = createEc2Role(`EMR_${env}`, [
     { name: 'ec2_emr1', policy: modifiedEmrEc2Policy.arn },
@@ -255,9 +282,11 @@ export const configureIamRoles = ({ env, rdl, sdl, adl }: IIamRoleProps): IIamRo
     { name: 'ec2_emr4', policy: rdlRead.arn },
     { name: 'ec2_emr5', policy: sdlRead.arn },
     { name: 'ec2_emr6', policy: adlRead.arn },
-    { name: 'ec2_emr7', policy: rdlWrite.arn },
-    { name: 'ec2_emr8', policy: sdlWrite.arn },
-    { name: 'ec2_emr9', policy: adlWrite.arn }
+    { name: 'ec2_emr7', policy: s3Read.arn },
+    { name: 'ec2_emr8', policy: rdlWrite.arn },
+    { name: 'ec2_emr9', policy: sdlWrite.arn },
+    { name: 'ec2_emr10', policy: adlWrite.arn },
+    { name: 'ec2_emr11', policy: s3Write.arn }
   ]);
   const ec2Jpt = createEc2Role(`JPT_${env}`, [
     { name: 'ec2_jpt1', policy: modifiedEmrEc2Policy.arn },
@@ -265,7 +294,11 @@ export const configureIamRoles = ({ env, rdl, sdl, adl }: IIamRoleProps): IIamRo
     { name: 'ec2_jpt3', policy: 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore' },
     { name: 'ec2_jpt4', policy: rdlRead.arn },
     { name: 'ec2_jpt5', policy: sdlRead.arn },
-    { name: 'ec2_jpt6', policy: adlRead.arn }
+    { name: 'ec2_jpt6', policy: adlRead.arn },
+    { name: 'ec2_jpt7', policy: s3Read.arn },
+    { name: 'ec2_jpt8', policy: jptRead.arn },
+    { name: 'ec2_jpt9', policy: s3Write.arn },
+    { name: 'ec2_jpt10', policy: jptWrite.arn }
   ]);
   const ec2Tbl = createEc2Role(`TBL_${env}`, [
     { name: 'ec2_tbl1', policy: 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore' },

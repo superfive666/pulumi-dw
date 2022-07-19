@@ -63,7 +63,7 @@ const start = (env: string) => {
     ec2Jpt,
     ec2Tbl,
     scaling: scalingRole
-  } = configureIamRoles({ env, rdl, sdl, adl });
+  } = configureIamRoles({ env, rdl, sdl, adl, jupyter, s3 });
 
   const {
     rdl: rdlPolicy,
@@ -74,6 +74,7 @@ const start = (env: string) => {
     rdl,
     sdl,
     adl,
+    jpt: jupyter,
     emr: { emr: emrEmr, jpt: emrJpt },
     ec2: { emr: ec2Emr, jpt: ec2Jpt }
   });

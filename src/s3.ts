@@ -15,6 +15,7 @@ interface IS3BucketPolicyOutput {
   rdl: aws.s3.BucketPolicy;
   sdl: aws.s3.BucketPolicy;
   adl: aws.s3.BucketPolicy;
+  jpt: aws.s3.BucketPolicy;
 }
 
 interface IS3BucketPolicyProps {
@@ -22,6 +23,7 @@ interface IS3BucketPolicyProps {
   rdl: aws.s3.Bucket;
   sdl: aws.s3.Bucket;
   adl: aws.s3.Bucket;
+  jpt: aws.s3.Bucket;
   emr: {
     emr: aws.iam.Role;
     jpt: aws.iam.Role;
@@ -52,6 +54,7 @@ export const configureS3BucketPolicy = ({
   rdl: rdlBucket,
   sdl: sdlBucket,
   adl: adlBucket,
+  jpt: jptBucket,
   emr,
   ec2
 }: IS3BucketPolicyProps): IS3BucketPolicyOutput => {
@@ -118,8 +121,29 @@ export const configureS3BucketPolicy = ({
       })
       .apply((v) => JSON.stringify(v))
   });
+  const jpt = new aws.s3.BucketPolicy(`jpt-${env}`, {
+    bucket: jptBucket.id,
+    policy: pulumi
+      .output({
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Deny',
+            NotPrincipal: {
+              AWS: [emr.jpt.arn, ec2.jpt.arn]
+            },
+            Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
+            Resource: [
+              pulumi.interpolate`arn:aws:s3:::${jptBucket.id}`,
+              pulumi.interpolate`arn:aws:s3:::${jptBucket.id}/*`
+            ]
+          }
+        ]
+      })
+      .apply((v) => JSON.stringify(v))
+  });
 
-  return { rdl, sdl, adl };
+  return { rdl, sdl, adl, jpt };
 };
 
 export const configureS3Bucket = (env: string): IS3BucketOutput => {
