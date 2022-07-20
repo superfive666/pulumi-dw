@@ -25,7 +25,8 @@ For security groups ingress rules please refer to the table below:
 | sg-emr-master | EMR master | Custom TCP | TCP | 9443 | sg-alb | Allow internal link for jupyter hub service in EMR |
 | sg-emr-master | EMR master | Custom TCP | TCP | 8998 | sg-alb | Allow internal link for livy service in EMR |
 | sg-emr-master | EMR master | Custom TCP | TCP | 9870 | sg-alb | Allow internal link for HDFS service in EMR |
-| sg-emr-master | EMR master | Custom TCP | TCP | 8998 | sg-alb | Allow internal link for spark service in EMR |
+| sg-emr-master | EMR master | Custom TCP | TCP | 18080 | sg-alb | Allow internal link for spark service in EMR |
+| sg-emr-master | EMR master | Custom TCP | TCP | 8088 | sg-alb | Allow internal link for yarn service in EMR |
 | sg-emr-slave | EMR slave | Custom TCP | TCP | 8443 | sg-emr-service | Allow EMR service group to access 8443 port |
 | sg-emr-slave | EMR slave | All TCP | TCP | 0-65535 | sg-emr-master | Open all TCP ports for EMR master group |
 | sg-emr-slave | EMR slave | All TCP | TCP | 0-65535 | sg-emr-slave | Open all TCP ports for same group |
