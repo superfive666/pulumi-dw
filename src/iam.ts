@@ -282,7 +282,6 @@ export const configureIamRoles = ({ env, rdl, sdl, adl, jupyter, s3 }: IIamRoleP
     { name: 'ec2_emr4', policy: rdlRead.arn },
     { name: 'ec2_emr5', policy: sdlRead.arn },
     { name: 'ec2_emr6', policy: adlRead.arn },
-    { name: 'ec2_emr7', policy: s3Read.arn },
     { name: 'ec2_emr8', policy: rdlWrite.arn },
     { name: 'ec2_emr9', policy: sdlWrite.arn },
     { name: 'ec2_emr10', policy: adlWrite.arn },
@@ -295,7 +294,6 @@ export const configureIamRoles = ({ env, rdl, sdl, adl, jupyter, s3 }: IIamRoleP
     { name: 'ec2_jpt4', policy: rdlRead.arn },
     { name: 'ec2_jpt5', policy: sdlRead.arn },
     { name: 'ec2_jpt6', policy: adlRead.arn },
-    { name: 'ec2_jpt7', policy: s3Read.arn },
     { name: 'ec2_jpt8', policy: jptRead.arn },
     { name: 'ec2_jpt9', policy: s3Write.arn },
     { name: 'ec2_jpt10', policy: jptWrite.arn }
