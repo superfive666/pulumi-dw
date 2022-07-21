@@ -43,14 +43,14 @@ export const configureRds = (env: string): IRdsConfigSettings => {
     vpcSecurityGroupIds
   } = config.requireObject<IRdsConfig>('rds');
 
-  const databaseName = `appmpdwrds${env}`;
+  const databaseName = `app-mpdw-${env}-`;
   const password = config.requireSecret('masterPassword');
 
   const dbSubnetGroup = createDbSubnetGroup(env, subnetIds, tags);
   const dbSubnetGroupName = dbSubnetGroup.name;
 
   const rds = new aws.rds.Instance(databaseName, {
-    dbName: databaseName,
+    dbName: `appmpdw${env}`,
     engine,
     // DB engine version can be explored via the following commands:
     // aws rds describe-db-engine-versions --engine aurora-postgresql --query '*[].[EngineVersion]' --output text --region us-west-2

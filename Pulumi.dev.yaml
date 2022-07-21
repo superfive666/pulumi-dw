@@ -50,8 +50,8 @@ config:
       - size: 32
         type: gp2
         volumesPerInstance: 2
-      instanceCount: 3
-      instanceType: m5.xlarge
+      instanceCount: 1
+      instanceType: m5.2xlarge
       name: Master - 1
     osReleaseLabel: 2.0.20220406.1
     releaseLabel: emr-6.6.0
@@ -95,7 +95,7 @@ config:
   data-platform:rds:
     allocatedStorage: 50
     engine: mysql
-    engineVersion: 8.0.29
+    engineVersion: 8.0.28
     iamDatabaseAuthenticationEnabled: true
     instanceClass: db.t3.xlarge
     masterUsername: root
