@@ -43,7 +43,7 @@ export const configureRds = (env: string): IRdsConfigSettings => {
     vpcSecurityGroupIds
   } = config.requireObject<IRdsConfig>('rds');
 
-  const databaseName = `app-mpdw-${env}-`;
+  const databaseName = `app-mpdw-${env}`;
   const password = config.requireSecret('masterPassword');
 
   const dbSubnetGroup = createDbSubnetGroup(env, subnetIds, tags);
