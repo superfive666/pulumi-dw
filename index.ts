@@ -65,19 +65,19 @@ const start = (env: string) => {
     scaling: scalingRole
   } = configureIamRoles({ env, rdl, sdl, adl, jupyter, s3 });
 
-  // const {
-  //   rdl: rdlPolicy,
-  //   sdl: sdlPolicy,
-  //   adl: adlPolicy
-  // } = configureS3BucketPolicy({
-  //   env,
-  //   rdl,
-  //   sdl,
-  //   adl,
-  //   jpt: jupyter,
-  //   emr: { emr: emrEmr, jpt: emrJpt },
-  //   ec2: { emr: ec2Emr, jpt: ec2Jpt }
-  // });
+  const {
+    rdl: rdlPolicy,
+    sdl: sdlPolicy,
+    adl: adlPolicy
+  } = configureS3BucketPolicy({
+    env,
+    rdl,
+    sdl,
+    adl,
+    jpt: jupyter,
+    emr: { emr: emrEmr, jpt: emrJpt },
+    ec2: { emr: ec2Emr, jpt: ec2Jpt }
+  });
 
   // Create small RDS instance for EMR to store metadata information
   const { rds } = configureRds(env);
@@ -107,9 +107,9 @@ const start = (env: string) => {
     emr,
     rds,
     tableau,
-    // rdlPolicy,
-    // sdlPolicy,
-    // adlPolicy,
+    rdlPolicy,
+    sdlPolicy,
+    adlPolicy,
     ...albs
   };
 };

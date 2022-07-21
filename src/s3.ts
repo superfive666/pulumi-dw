@@ -1,7 +1,7 @@
 import * as pulumi from '@pulumi/pulumi';
 import * as aws from '@pulumi/aws';
 
-import { CannedAcl, AccountPublicAccessBlockArgs } from '@pulumi/aws/s3';
+import {CannedAcl, AccountPublicAccessBlockArgs} from '@pulumi/aws/s3';
 
 interface IS3BucketOutput {
   log: aws.s3.Bucket;
@@ -66,14 +66,19 @@ export const configureS3BucketPolicy = ({
         Statement: [
           {
             Effect: 'Deny',
-            NotPrincipal: {
-              AWS: [emr.emr.arn, emr.jpt.arn, ec2.emr.arn, ec2.jpt.arn]
-            },
+            Principal: '*',
             Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
             Resource: [
               pulumi.interpolate`arn:aws:s3:::${rdlBucket.id}`,
               pulumi.interpolate`arn:aws:s3:::${rdlBucket.id}/*`
-            ]
+            ],
+            Condition: {
+              StringNotLike: {
+                'aws:ARN': pulumi.all([emr.emr.name, emr.jpt.name, ec2.emr.name, ec2.jpt.name])
+                  .apply((roles) => roles
+                    .map((role) => 'arn:aws:sts::${aws:ResourceAccount}:' + `assumed-role/${role}/*`))
+              }
+            }
           }
         ]
       })
@@ -87,14 +92,19 @@ export const configureS3BucketPolicy = ({
         Statement: [
           {
             Effect: 'Deny',
-            NotPrincipal: {
-              AWS: [emr.emr.arn, emr.jpt.arn, ec2.emr.arn, ec2.jpt.arn]
-            },
+            Principal: '*',
             Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
             Resource: [
               pulumi.interpolate`arn:aws:s3:::${sdlBucket.id}`,
               pulumi.interpolate`arn:aws:s3:::${sdlBucket.id}/*`
-            ]
+            ],
+            Condition: {
+              StringNotLike: {
+                'aws:ARN': pulumi.all([emr.emr.name, emr.jpt.name, ec2.emr.name, ec2.jpt.name])
+                  .apply((roles) => roles
+                    .map((role) => 'arn:aws:sts::${aws:ResourceAccount}:' + `assumed-role/${role}/*`))
+              }
+            }
           }
         ]
       })
@@ -108,14 +118,19 @@ export const configureS3BucketPolicy = ({
         Statement: [
           {
             Effect: 'Deny',
-            NotPrincipal: {
-              AWS: [emr.emr.arn, emr.jpt.arn, ec2.emr.arn, ec2.jpt.arn]
-            },
+            Principal: '*',
             Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
             Resource: [
               pulumi.interpolate`arn:aws:s3:::${adlBucket.id}`,
               pulumi.interpolate`arn:aws:s3:::${adlBucket.id}/*`
-            ]
+            ],
+            Condition: {
+              StringNotLike: {
+                'aws:ARN': pulumi.all([emr.emr.name, emr.jpt.name, ec2.emr.name, ec2.jpt.name])
+                  .apply((roles) => roles
+                    .map((role) => 'arn:aws:sts::${aws:ResourceAccount}:' + `assumed-role/${role}/*`))
+              }
+            }
           }
         ]
       })
@@ -129,21 +144,25 @@ export const configureS3BucketPolicy = ({
         Statement: [
           {
             Effect: 'Deny',
-            NotPrincipal: {
-              AWS: [emr.jpt.arn, ec2.jpt.arn]
-            },
+            Principal: '*',
             Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
             Resource: [
               pulumi.interpolate`arn:aws:s3:::${jptBucket.id}`,
               pulumi.interpolate`arn:aws:s3:::${jptBucket.id}/*`
-            ]
-          }
-        ]
+            ],
+            Condition: {
+              StringNotLike: {
+                'aws:ARN': pulumi.all([emr.jpt.name, ec2.jpt.name])
+                  .apply((roles) => roles
+                    .map((role) => 'arn:aws:sts::${aws:ResourceAccount}:' + `assumed-role/${role}/*`))
+              }
+            }
+          }]
       })
       .apply((v) => JSON.stringify(v))
   });
 
-  return { rdl, sdl, adl, jpt };
+  return {rdl, sdl, adl, jpt};
 };
 
 export const configureS3Bucket = (env: string): IS3BucketOutput => {
@@ -177,7 +196,7 @@ const createBucket = (bucketName: string, purpose: string): aws.s3.Bucket => {
       ...blockOpts,
       bucket: bucket.id
     },
-    { dependsOn: [bucket] }
+    {dependsOn: [bucket]}
   );
 
   return bucket;
