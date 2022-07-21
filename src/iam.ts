@@ -24,6 +24,7 @@ interface IS3IamPolicyProps {
   description: string;
   s3: aws.s3.Bucket;
   readonly?: boolean;
+  all?: boolean;
 }
 
 interface IIamPolicyAttachmentProps {
@@ -39,7 +40,7 @@ const baseTags: aws.Tags = {
   'pulumi:Stack': stack
 };
 
-export const configureIamRoles = ({ env, rdl, sdl, adl, jupyter, s3 }: IIamRoleProps): IIamRoleSettings => {
+export const configureIamRoles = ({env, rdl, sdl, adl, jupyter, s3}: IIamRoleProps): IIamRoleSettings => {
   const modifiedEmrPolicy = createPolicy(
     `AmazonEmrRole${env.toUpperCase()}`,
     'This is the role created by modifying based on the AWS management role arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole, the changes include removing the unnecessary s3 access which need to be controlled',
@@ -238,7 +239,8 @@ export const configureIamRoles = ({ env, rdl, sdl, adl, jupyter, s3 }: IIamRoleP
   const s3Write = createS3BucketPolicy({
     name: `EmrLogWrite${env.toUpperCase()}`,
     description: 'Allow write access to EMR Logs S3 bucket',
-    s3
+    s3,
+    all: true
   });
   const jptRead = createS3BucketPolicy({
     name: `JupyterReadOnly${env.toUpperCase()}`,
@@ -253,58 +255,58 @@ export const configureIamRoles = ({ env, rdl, sdl, adl, jupyter, s3 }: IIamRoleP
   });
 
   const emrEmr = createEmrRole(`EMR_${env}`, [
-    { name: 'emr_emr1', policy: modifiedEmrPolicy.arn },
+    {name: 'emr_emr1', policy: modifiedEmrPolicy.arn},
     {
       name: 'emr_emr2',
       policy: 'arn:aws:iam::aws:policy/AmazonElasticMapReducePlacementGroupPolicy'
     },
-    { name: 'emr_emr3', policy: rdlRead.arn },
-    { name: 'emr_emr4', policy: sdlRead.arn },
-    { name: 'emr_emr5', policy: adlRead.arn },
-    { name: 'emr_emr6', policy: s3Read.arn }
+    {name: 'emr_emr3', policy: rdlRead.arn},
+    {name: 'emr_emr4', policy: sdlRead.arn},
+    {name: 'emr_emr5', policy: adlRead.arn},
+    {name: 'emr_emr6', policy: s3Read.arn}
   ]);
   const emrJpt = createEmrRole(`JPT_${env}`, [
-    { name: 'emr_jpt1', policy: modifiedEmrPolicy.arn },
+    {name: 'emr_jpt1', policy: modifiedEmrPolicy.arn},
     {
       name: 'emr_jpt2',
       policy: 'arn:aws:iam::aws:policy/AmazonElasticMapReducePlacementGroupPolicy'
     },
-    { name: 'emr_jpt3', policy: rdlRead.arn },
-    { name: 'emr_jpt4', policy: sdlRead.arn },
-    { name: 'emr_jpt5', policy: adlRead.arn },
-    { name: 'emr_jpt6', policy: s3Read.arn },
-    { name: 'emr_jpt7', policy: jptRead.arn }
+    {name: 'emr_jpt3', policy: rdlRead.arn},
+    {name: 'emr_jpt4', policy: sdlRead.arn},
+    {name: 'emr_jpt5', policy: adlRead.arn},
+    {name: 'emr_jpt6', policy: s3Read.arn},
+    {name: 'emr_jpt7', policy: jptRead.arn}
   ]);
   const ec2Emr = createEc2Role(`EMR_${env}`, [
-    { name: 'ec2_emr1', policy: modifiedEmrEc2Policy.arn },
-    { name: 'ec2_emr2', policy: 'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM' },
-    { name: 'ec2_emr3', policy: 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore' },
-    { name: 'ec2_emr4', policy: rdlRead.arn },
-    { name: 'ec2_emr5', policy: sdlRead.arn },
-    { name: 'ec2_emr6', policy: adlRead.arn },
-    { name: 'ec2_emr8', policy: rdlWrite.arn },
-    { name: 'ec2_emr9', policy: sdlWrite.arn },
-    { name: 'ec2_emr10', policy: adlWrite.arn },
-    { name: 'ec2_emr11', policy: s3Write.arn }
+    {name: 'ec2_emr1', policy: modifiedEmrEc2Policy.arn},
+    {name: 'ec2_emr2', policy: 'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM'},
+    {name: 'ec2_emr3', policy: 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'},
+    {name: 'ec2_emr4', policy: rdlRead.arn},
+    {name: 'ec2_emr5', policy: sdlRead.arn},
+    {name: 'ec2_emr6', policy: adlRead.arn},
+    {name: 'ec2_emr8', policy: rdlWrite.arn},
+    {name: 'ec2_emr9', policy: sdlWrite.arn},
+    {name: 'ec2_emr10', policy: adlWrite.arn},
+    {name: 'ec2_emr11', policy: s3Write.arn}
   ]);
   const ec2Jpt = createEc2Role(`JPT_${env}`, [
-    { name: 'ec2_jpt1', policy: modifiedEmrEc2Policy.arn },
-    { name: 'ec2_jpt2', policy: 'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM' },
-    { name: 'ec2_jpt3', policy: 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore' },
-    { name: 'ec2_jpt4', policy: rdlRead.arn },
-    { name: 'ec2_jpt5', policy: sdlRead.arn },
-    { name: 'ec2_jpt6', policy: adlRead.arn },
-    { name: 'ec2_jpt8', policy: jptRead.arn },
-    { name: 'ec2_jpt9', policy: s3Write.arn },
-    { name: 'ec2_jpt10', policy: jptWrite.arn }
+    {name: 'ec2_jpt1', policy: modifiedEmrEc2Policy.arn},
+    {name: 'ec2_jpt2', policy: 'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM'},
+    {name: 'ec2_jpt3', policy: 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'},
+    {name: 'ec2_jpt4', policy: rdlRead.arn},
+    {name: 'ec2_jpt5', policy: sdlRead.arn},
+    {name: 'ec2_jpt6', policy: adlRead.arn},
+    {name: 'ec2_jpt8', policy: jptRead.arn},
+    {name: 'ec2_jpt9', policy: s3Write.arn},
+    {name: 'ec2_jpt10', policy: jptWrite.arn}
   ]);
   const ec2Tbl = createEc2Role(`TBL_${env}`, [
-    { name: 'ec2_tbl1', policy: 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore' },
-    { name: 'ec2_tbl2', policy: 'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM' }
+    {name: 'ec2_tbl1', policy: 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'},
+    {name: 'ec2_tbl2', policy: 'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM'}
   ]);
   const scaling = createScalingRole(env);
 
-  return { emrEmr, emrJpt, ec2Emr, ec2Jpt, ec2Tbl, scaling };
+  return {emrEmr, emrJpt, ec2Emr, ec2Jpt, ec2Tbl, scaling};
 };
 
 const createEmrRole = (env: string, policies: IIamPolicyAttachmentProps[]): aws.iam.Role => {
@@ -317,7 +319,7 @@ const createEmrRole = (env: string, policies: IIamPolicyAttachmentProps[]): aws.
   // Attach the following policies to the default EMR role: (all roles are managed by AWS)
   // 1. AmazonElasticMapReduceRole: this role is currently customized from default role removing unnecessary s3 bucket access rights
   // 2. AmazonElasticMapReducePlacementGroupPolicy
-  policies.forEach(({ name, policy }) => createAttachment(name, role, policy));
+  policies.forEach(({name, policy}) => createAttachment(name, role, policy));
 
   return role;
 };
@@ -335,7 +337,7 @@ const createEc2Role = (env: string, policies: IIamPolicyAttachmentProps[]): aws.
   // Please use AmazonSSMManagedInstanceCore policy to enable AWS Systems Manager service core functionality on EC2 instances. For more information see https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-instance-profile.html
   // 2. AmazonElasticMapReduceforEC2Role: this role is currently customized from default role removing unnecessary s3 bucket access rights
   // 3. AmazonSSMManagedInstanceCore
-  policies.forEach(({ name, policy }) => createAttachment(name, role, policy));
+  policies.forEach(({name, policy}) => createAttachment(name, role, policy));
 
   return role;
 };
@@ -392,9 +394,14 @@ const createS3BucketPolicy = ({
   name,
   description,
   s3,
-  readonly
+  readonly,
+  all
 }: IS3IamPolicyProps): aws.iam.Policy => {
-  const actions = readonly ? ['s3:Get*,', 's3:List*'] : ['s3:Put*', 's3:Delete*'];
+  const actions = readonly ? ['s3:GetObject,', 's3:ListBucket'] : ['s3:PutObject', 's3:DeleteObject'];
+  if (!!all && !readonly) {
+    actions.push('s3:GetObject');
+    actions.push('s3:ListBucket');
+  }
 
   return createPolicy(
     name,
