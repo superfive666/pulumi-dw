@@ -67,10 +67,32 @@ export const configureS3BucketPolicy = ({
           {
             Effect: 'Deny',
             Principal: '*',
-            Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
+            Action: [
+              "s3:ListBucket",
+              "s3:GetObject"
+            ],
             Resource: [
-              pulumi.interpolate`arn:aws:s3:::${rdlBucket.id}`,
-              pulumi.interpolate`arn:aws:s3:::${rdlBucket.id}/*`
+              `arn:aws:s3:::${rdlBucket.id}`,
+              `arn:aws:s3:::${rdlBucket.id}/*`
+            ],
+            Condition: {
+              StringNotLike: {
+                'aws:ARN': pulumi.all([emr.emr.name, emr.jpt.name, ec2.emr.name, ec2.jpt.name])
+                  .apply((roles) => roles
+                    .map((role) => 'arn:aws:sts::${aws:ResourceAccount}:' + `assumed-role/${role}/*`))
+              }
+            }
+          },
+          {
+            Effect: 'Deny',
+            Principal: '*',
+            Action: [
+              "s3:PutObject",
+              "s3:DeleteObject"
+            ],
+            Resource: [
+              `arn:aws:s3:::${rdlBucket.id}`,
+              `arn:aws:s3:::${rdlBucket.id}/*`
             ],
             Condition: {
               StringNotLike: {
@@ -93,10 +115,32 @@ export const configureS3BucketPolicy = ({
           {
             Effect: 'Deny',
             Principal: '*',
-            Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
+            Action: [
+              "s3:ListBucket",
+              "s3:GetObject"
+            ],
             Resource: [
-              pulumi.interpolate`arn:aws:s3:::${sdlBucket.id}`,
-              pulumi.interpolate`arn:aws:s3:::${sdlBucket.id}/*`
+              `arn:aws:s3:::${sdlBucket.id}`,
+              `arn:aws:s3:::${sdlBucket.id}/*`
+            ],
+            Condition: {
+              StringNotLike: {
+                'aws:ARN': pulumi.all([emr.emr.name, emr.jpt.name, ec2.emr.name, ec2.jpt.name])
+                  .apply((roles) => roles
+                    .map((role) => 'arn:aws:sts::${aws:ResourceAccount}:' + `assumed-role/${role}/*`))
+              }
+            }
+          },
+          {
+            Effect: 'Deny',
+            Principal: '*',
+            Action: [
+              "s3:PutObject",
+              "s3:DeleteObject"
+            ],
+            Resource: [
+              `arn:aws:s3:::${sdlBucket.id}`,
+              `arn:aws:s3:::${sdlBucket.id}/*`
             ],
             Condition: {
               StringNotLike: {
@@ -119,10 +163,32 @@ export const configureS3BucketPolicy = ({
           {
             Effect: 'Deny',
             Principal: '*',
-            Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
+            Action: [
+              "s3:ListBucket",
+              "s3:GetObject"
+            ],
             Resource: [
-              pulumi.interpolate`arn:aws:s3:::${adlBucket.id}`,
-              pulumi.interpolate`arn:aws:s3:::${adlBucket.id}/*`
+              `arn:aws:s3:::${adlBucket.id}`,
+              `arn:aws:s3:::${adlBucket.id}/*`
+            ],
+            Condition: {
+              StringNotLike: {
+                'aws:ARN': pulumi.all([emr.emr.name, emr.jpt.name, ec2.emr.name, ec2.jpt.name])
+                  .apply((roles) => roles
+                    .map((role) => 'arn:aws:sts::${aws:ResourceAccount}:' + `assumed-role/${role}/*`))
+              }
+            }
+          },
+          {
+            Effect: 'Deny',
+            Principal: '*',
+            Action: [
+              "s3:PutObject",
+              "s3:DeleteObject"
+            ],
+            Resource: [
+              `arn:aws:s3:::${adlBucket.id}`,
+              `arn:aws:s3:::${adlBucket.id}/*`
             ],
             Condition: {
               StringNotLike: {
@@ -145,10 +211,13 @@ export const configureS3BucketPolicy = ({
           {
             Effect: 'Deny',
             Principal: '*',
-            Action: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
+            Action: [
+              "s3:ListBucket",
+              "s3:GetObject"
+            ],
             Resource: [
-              pulumi.interpolate`arn:aws:s3:::${jptBucket.id}`,
-              pulumi.interpolate`arn:aws:s3:::${jptBucket.id}/*`
+              `arn:aws:s3:::${jptBucket.id}`,
+              `arn:aws:s3:::${jptBucket.id}/*`
             ],
             Condition: {
               StringNotLike: {
@@ -157,7 +226,27 @@ export const configureS3BucketPolicy = ({
                     .map((role) => 'arn:aws:sts::${aws:ResourceAccount}:' + `assumed-role/${role}/*`))
               }
             }
-          }]
+          },
+          {
+            Effect: 'Deny',
+            Principal: '*',
+            Action: [
+              "s3:PutObject",
+              "s3:DeleteObject"
+            ],
+            Resource: [
+              `arn:aws:s3:::${jptBucket.id}`,
+              `arn:aws:s3:::${jptBucket.id}/*`
+            ],
+            Condition: {
+              StringNotLike: {
+                'aws:ARN': pulumi.all([emr.jpt.name, ec2.jpt.name])
+                  .apply((roles) => roles
+                    .map((role) => 'arn:aws:sts::${aws:ResourceAccount}:' + `assumed-role/${role}/*`))
+              }
+            }
+          }
+        ]
       })
       .apply((v) => JSON.stringify(v))
   });
