@@ -21,19 +21,31 @@ Use Master-B1 for Airflow SIT / Master-B2 for Airflow PRD
    /opt/miniconda3/bin/conda create -n airflow python=3.9 -y
    
     ```
-    
-2. Install Airflow
+
+2. Log into RDS database and create database and database user
+
+   ```
+   create database if not exists airflow;
+
+   create user if not exists 'airflow' identified by 'nVNG#w6+7x>g';
+
+   grant all privileges on airflow.* to 'airflow';
+   ```
+
+
+3. Install Airflow
    ```
    conda activate airflow
    pip install "apache-airflow[celery]==2.3.2" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.3.2/constraints-3.7.txt"
    yes | pip install mysqlclient pyspark pandas numpy
    ```
-3. Config Airflow
+
+4. Config Airflow
    ```
    # either use export or vi config
    # export AIRFLOW__WEBSERVER__BASE_URL=http://localhost:8888
    # export AIRFLOW__WEBSERVER__WEB_SERVER_PORT=8888
-   # export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=mysql+mysqldb://airflow_user:airflow_pass@appmpdwrdsdev0648a3d.ctvq6hvmhtaq.us-west-2.rds.amazonaws.com/airflow_db
+   # export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=mysql+mysqldb://airflow:nVNG#w6+7x>g@app-mpdw-sit-rds.ckdkjufyghml.us-west-2.rds.amazonaws.com/airflow
    
    # start server   
    airflow scheduler -d
@@ -45,7 +57,7 @@ Use Master-B1 for Airflow SIT / Master-B2 for Airflow PRD
    export PYSPARK_DRIVER_PYTHON=$PYSPARK_PYTHON
    # export PYTHONPATH=${SPARK_HOME}/python/:$(echo ${SPARK_HOME}/python/lib/py4j-*-src.zip):${PYTHONPATH}
    ```
-4. Git Pull Job Repo
+5. Git Pull Job Repo
 
 
 
